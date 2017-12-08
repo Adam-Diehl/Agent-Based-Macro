@@ -1,1854 +1,420 @@
-(* Content-type: application/vnd.wolfram.mathematica *)
+(* Agent Based Macroeconomic Model Simulation Version 1.1 *)
 
-(*** Wolfram Notebook File ***)
-(* http://www.wolfram.com/nb *)
+(* Model output prints at bottom. To run a simulation press Cmd-A (or \
+Ctrl-A on Windows) and hit Shift-Enter. Clear the kernel between runs \
+of the simulation. *)
 
-(* CreatedBy='Mathematica 10.2' *)
+(* SET CONSTANTS *)
 
-(*CacheID: 234*)
-(* Internal cache information:
-NotebookFileLineBreakTest
-NotebookFileLineBreakTest
-NotebookDataPosition[       158,          7]
-NotebookDataLength[     82285,       1845]
-NotebookOptionsPosition[     81240,       1812]
-NotebookOutlinePosition[     81592,       1828]
-CellTagsIndexPosition[     81549,       1825]
-WindowFrame->Normal*)
+NumPeriods = 10;
 
-(* Beginning of Notebook Content *)
-Notebook[{
-Cell[BoxData[
- RowBox[{
-  RowBox[{
-   StyleBox[
-    StyleBox[
-     RowBox[{"(", "*"}]],
-    FontSize->24], 
-   StyleBox[" ",
-    FontSize->18], 
-   StyleBox[
-    RowBox[{
-    "Agent", " ", "Based", " ", "Macroeconomic", " ", "Model", " ", 
-     "Simulation", " ", "Version", " ", "1.1"}],
-    FontSize->24], 
-   StyleBox[" ",
-    FontSize->18], 
-   StyleBox[
-    StyleBox[
-     RowBox[{"*", ")"}]],
-    FontSize->24]}], 
-  StyleBox["\[IndentingNewLine]",
-   FontSize->24], 
-  StyleBox["\[IndentingNewLine]",
-   FontSize->24], 
-  StyleBox[
-   RowBox[{
-    StyleBox[
-     RowBox[{"(", "*"}]], " ", 
-    RowBox[{
-     RowBox[{"Model", " ", "output", " ", "prints", " ", "at", " ", 
-      RowBox[{"bottom", ".", " ", "To"}], " ", "run", " ", "a", " ", 
-      "simulation", " ", "press", " ", "Cmd"}], "-", 
-     RowBox[{"A", " ", 
-      RowBox[{"(", 
-       RowBox[{
-        RowBox[{"or", " ", "Ctrl"}], "-", 
-        RowBox[{"A", " ", "on", " ", "Windows"}]}], ")"}], " ", "and", " ", 
-      "hit", " ", "Shift"}], "-", 
-     RowBox[{
-      RowBox[{"Enter", ".", " ", "Clear"}], " ", "the", " ", "kernel", " ", 
-      "between", " ", "runs", " ", "of", " ", "the", " ", 
-      RowBox[{"simulation", "."}]}]}], " ", 
-    StyleBox[
-     RowBox[{"*", ")"}]]}],
-   FontSize->14], "\[IndentingNewLine]", "\[IndentingNewLine]", 
-  StyleBox[
-   RowBox[{"(*", " ", 
-    RowBox[{"SET", " ", "CONSTANTS"}], " ", "*)"}],
-   FontSize->18], "\[IndentingNewLine]", 
-  StyleBox["\[IndentingNewLine]",
-   FontSize->18], 
-  RowBox[{
-   RowBox[{
-    RowBox[{"NumPeriods", " ", "=", " ", "10"}], ";"}], "\[IndentingNewLine]",
-    "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"Cash", " ", "=", " ", "2600"}], ";", " ", 
-    RowBox[{"(*", " ", 
-     RowBox[{"Cash", " ", "to", " ", "single", " ", "firm"}], " ", "*)"}], 
-    "\[IndentingNewLine]", "\[IndentingNewLine]", 
-    RowBox[{"InitialCapital", " ", "=", " ", "0"}], ";"}], 
-   "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"InitialLabor", " ", "=", " ", "0"}], ";"}], 
-   "\[IndentingNewLine]", "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"NumFirms", " ", "=", " ", "5"}], ";"}], "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"NumHouseholds", " ", "=", " ", "1000"}], ";"}], 
-   "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"NumBanks", " ", "=", " ", "1"}], ";"}], "\[IndentingNewLine]", 
-   "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"PriceCapital", " ", "=", " ", "20"}], ";"}], 
-   "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"PriceLabor", " ", "=", " ", "16"}], ";"}], "\[IndentingNewLine]",
-    "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"PriceGood", " ", "=", " ", "8"}], ";"}], "\[IndentingNewLine]", 
-   "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"ReturnsCapital", " ", "=", " ", "0.3"}], ";"}], 
-   "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"ReturnsLabor", " ", "=", " ", "0.7"}], ";"}], 
-   "\[IndentingNewLine]", "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"TechLevel", " ", "=", " ", "10"}], ";"}], "\[IndentingNewLine]", 
-   "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"MPC", " ", "=", " ", "1"}], ";", 
-    RowBox[{"(*", " ", 
-     RowBox[{"Marginal", " ", "Propensity", " ", "to", " ", "Consume"}], " ", 
-     "*)"}], "\[IndentingNewLine]", "\[IndentingNewLine]", 
-    RowBox[{"WageAdjustmentDelay", " ", "=", " ", "2"}], ";", " ", 
-    RowBox[{"(*", " ", 
-     RowBox[{
-     "Number", " ", "of", " ", "periods", " ", "to", " ", "wait", " ", 
-      "before", " ", "adjusting", " ", "wage", " ", "up", " ", "or", " ", 
-      "down"}], " ", "*)"}]}]}]}]], "Input",
- CellChangeTimes->{{3.71794399429068*^9, 3.717944088469034*^9}, {
-   3.717944223527998*^9, 3.717944253937831*^9}, {3.717944303936685*^9, 
-   3.71794431129891*^9}, {3.717944347357753*^9, 3.717944361413274*^9}, {
-   3.7179444120161877`*^9, 3.717944412150543*^9}, {3.717944583873506*^9, 
-   3.717944592041326*^9}, {3.717949867687737*^9, 3.717949891023344*^9}, {
-   3.7179510846092176`*^9, 3.717951085240744*^9}, {3.718630396993235*^9, 
-   3.718630448673751*^9}, {3.718631407418619*^9, 3.718631407794302*^9}, {
-   3.718641271825782*^9, 3.71864127193719*^9}, 3.7186422040326433`*^9, {
-   3.7186425319819527`*^9, 3.718642532597638*^9}, {3.718642601180498*^9, 
-   3.718642606359727*^9}, {3.718642828801457*^9, 3.718642859887558*^9}, {
-   3.7186428990822067`*^9, 3.718642899928515*^9}, {3.718644037715271*^9, 
-   3.718644039402918*^9}, {3.719577578157029*^9, 3.7195775948126497`*^9}, {
-   3.719578115090866*^9, 3.719578151110469*^9}, {3.7195787010670137`*^9, 
-   3.7195787179805*^9}, {3.719584618539195*^9, 3.7195846416145887`*^9}, {
-   3.7195851412128267`*^9, 3.7195851412986803`*^9}, {3.719585907605435*^9, 
-   3.719585907649891*^9}, {3.719612516402871*^9, 3.7196125177678423`*^9}, {
-   3.719615370357798*^9, 3.7196153704655867`*^9}, {3.719615673076496*^9, 
-   3.7196156750578423`*^9}, {3.71966980429452*^9, 3.7196698057244787`*^9}, {
-   3.719670202992259*^9, 3.71967020349294*^9}, {3.719670379572741*^9, 
-   3.719670391938308*^9}, {3.7196734813136168`*^9, 3.7196734826469812`*^9}, {
-   3.7196739673898573`*^9, 3.719673967691881*^9}, {3.719676094320876*^9, 
-   3.719676095101349*^9}, {3.71967651219748*^9, 3.7196765498425503`*^9}, {
-   3.7197678743652697`*^9, 3.719767875058134*^9}, {3.719769314415477*^9, 
-   3.719769314551297*^9}, {3.719769354289682*^9, 3.7197693570312843`*^9}, {
-   3.719769787945034*^9, 3.719769788997964*^9}, {3.7198424226505613`*^9, 
-   3.7198424232254477`*^9}, {3.719842516358561*^9, 3.719842516862193*^9}, {
-   3.721671614965464*^9, 3.721671615897925*^9}, {3.721672648282323*^9, 
-   3.721672649042322*^9}, {3.721688386257423*^9, 3.721688413544979*^9}, {
-   3.721688478805253*^9, 3.7216884788991337`*^9}, {3.721688525308195*^9, 
-   3.721688525371729*^9}, {3.721689081869954*^9, 3.721689259056584*^9}}],
+Cash = 2600; (* Cash to single firm *)
 
-Cell[BoxData[
- StyleBox[
-  RowBox[{"(*", " ", 
-   RowBox[{"PROGRAM", " ", "INITIALIZATION"}], " ", "*)"}],
-  FontSize->18]], "Input",
- CellChangeTimes->{{3.719584479068018*^9, 3.7195844877094717`*^9}}],
+InitialCapital = 0;
+InitialLabor = 0;
 
-Cell[BoxData[
- RowBox[{
-  RowBox[{"(*", " ", 
-   RowBox[{
-   "Create", " ", "Balance", " ", "Sheets", " ", "and", " ", "funtions", " ", 
-    "to", " ", "print", " ", "them"}], " ", "*)"}], "\[IndentingNewLine]", 
-  RowBox[{
-   RowBox[{
-    RowBox[{"BalanceSheetBanks", " ", "=", " ", 
-     RowBox[{"ConstantArray", "[", 
-      RowBox[{"0", ",", 
-       RowBox[{"{", 
-        RowBox[{"NumBanks", ",", "6"}], "}"}]}], "]"}]}], ";"}], 
-   "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"PrintBanks", " ", ":=", " ", 
-     RowBox[{"Grid", "[", 
-      RowBox[{"Prepend", "[", 
-       RowBox[{"BalanceSheetBanks", ",", 
-        RowBox[{"{", 
-         RowBox[{
-         "\"\<Label\>\"", ",", "\"\<Cash\>\"", ",", "\"\<Liabilities\>\"", 
-          ",", "\"\<Equity\>\"", ",", "\"\<Expected Capital Inflow\>\"", ",", 
-          "\"\<Capital Ratio\>\""}], "}"}]}], "]"}], "]"}]}], ";"}], 
-   "\[IndentingNewLine]", "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"BalanceSheetFirms", " ", "=", " ", 
-     RowBox[{"ConstantArray", "[", 
-      RowBox[{"0", ",", 
-       RowBox[{"{", 
-        RowBox[{"NumFirms", ",", "5"}], "}"}]}], "]"}]}], ";"}], 
-   "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"PrintFirms", " ", ":=", " ", 
-     RowBox[{"Grid", "[", 
-      RowBox[{"Prepend", "[", 
-       RowBox[{"BalanceSheetFirms", ",", 
-        RowBox[{"{", 
-         RowBox[{
-         "\"\<Label\>\"", ",", "\"\<Cash\>\"", ",", "\"\<Liabilities\>\"", 
-          ",", "\"\<Equity\>\"", ",", "\"\<Inventory\>\""}], "}"}]}], "]"}], 
-      "]"}]}], ";"}], "\[IndentingNewLine]", "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"BalanceSheetHouseholds", " ", "=", " ", 
-     RowBox[{"ConstantArray", "[", 
-      RowBox[{"0", ",", 
-       RowBox[{"{", 
-        RowBox[{"NumHouseholds", ",", "8"}], "}"}]}], "]"}]}], ";"}], 
-   "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"PrintHouseholds", " ", ":=", " ", 
-     RowBox[{"Grid", "[", 
-      RowBox[{"Prepend", "[", 
-       RowBox[{"BalanceSheetHouseholds", ",", 
-        RowBox[{"{", 
-         RowBox[{
-         "\"\<Label\>\"", ",", "\"\<Cash (Liquid)\>\"", ",", 
-          "\"\<Cash (Deposits)\>\"", ",", "\"\<Equity\>\"", ",", 
-          "\"\<Net Wealth\>\"", ",", "\"\<Reservation Wage\>\"", ",", 
-          "\"\<Employed\>\"", ",", "\"\<Cumulative Employment\>\""}], "}"}]}],
-        "]"}], "]"}]}], ";"}]}]}]], "Input",
- CellChangeTimes->{{3.7179451691294813`*^9, 3.717945296566086*^9}, {
-  3.7179453451595297`*^9, 3.7179453984626827`*^9}, {3.717945437793083*^9, 
-  3.71794551528174*^9}, {3.719577542681609*^9, 3.719577575104726*^9}, {
-  3.719677371104924*^9, 3.719677393438374*^9}, {3.719678049867468*^9, 
-  3.7196780612245283`*^9}, {3.719678135743367*^9, 3.719678136093266*^9}}],
+NumFirms = 5;
+NumHouseholds = 1000;
+NumBanks = 1;
 
-Cell[BoxData[
- RowBox[{
-  RowBox[{"(*", " ", 
-   RowBox[{
-   "Create", " ", "Labels", " ", "for", " ", "the", " ", "Balance", " ", 
-    "Sheets"}], " ", "*)"}], "\[IndentingNewLine]", 
-  RowBox[{
-   RowBox[{"Do", "[", 
-    RowBox[{
-     RowBox[{
-      RowBox[{
-       RowBox[{"BalanceSheetBanks", "[", 
-        RowBox[{"[", "i", "]"}], "]"}], "[", 
-       RowBox[{"[", "1", "]"}], "]"}], " ", "=", " ", "i"}], ",", 
-     RowBox[{"{", 
-      RowBox[{"i", ",", "1", ",", "NumBanks"}], "}"}]}], "]"}], 
-   "\[IndentingNewLine]", 
-   RowBox[{"Do", "[", 
-    RowBox[{
-     RowBox[{
-      RowBox[{
-       RowBox[{"BalanceSheetFirms", "[", 
-        RowBox[{"[", "i", "]"}], "]"}], "[", 
-       RowBox[{"[", "1", "]"}], "]"}], " ", "=", " ", "i"}], ",", 
-     RowBox[{"{", 
-      RowBox[{"i", ",", "1", ",", "NumFirms"}], "}"}]}], "]"}], 
-   "\[IndentingNewLine]", 
-   RowBox[{"Do", "[", 
-    RowBox[{
-     RowBox[{
-      RowBox[{
-       RowBox[{"BalanceSheetHouseholds", "[", 
-        RowBox[{"[", "i", "]"}], "]"}], "[", 
-       RowBox[{"[", "1", "]"}], "]"}], " ", "=", " ", "i"}], ",", 
-     RowBox[{"{", 
-      RowBox[{"i", ",", "1", ",", "NumHouseholds"}], "}"}]}], 
-    "]"}]}]}]], "Input",
- CellChangeTimes->{{3.7195774869468317`*^9, 3.7195775574849777`*^9}, {
-  3.719584497584785*^9, 3.7195845025260067`*^9}}],
+PriceCapital = 20;
+PriceLabor = 16;
 
-Cell[BoxData[
- RowBox[{
-  RowBox[{"(*", " ", 
-   RowBox[{"Create", " ", "array", " ", "for", " ", "production"}], " ", 
-   "*)"}], "\[IndentingNewLine]", 
-  RowBox[{
-   RowBox[{
-    RowBox[{"ProductionMatrix", " ", "=", " ", 
-     RowBox[{"ConstantArray", "[", 
-      RowBox[{"0", ",", 
-       RowBox[{"{", 
-        RowBox[{"NumFirms", ",", "12"}], "}"}]}], "]"}]}], ";"}], 
-   "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"PrintProduction", " ", ":=", 
-     RowBox[{"Grid", "[", 
-      RowBox[{"Prepend", "[", 
-       RowBox[{"ProductionMatrix", ",", 
-        RowBox[{"{", 
-         RowBox[{
-         "\"\<Label\>\"", ",", "\"\<Cash\>\"", ",", "\"\<Current Capital\>\"",
-           ",", "\"\<Current Labor\>\"", ",", "\"\<Capital Target\>\"", ",", 
-          "\"\<Labor Target\>\"", ",", "\"\<Revenue Target\>\"", ",", 
-          "\"\<Cost Capital\>\"", ",", "\"\<Cost Labor\>\"", ",", 
-          "\"\<Profit\>\"", ",", "\"\<Rental Rate\>\"", ",", 
-          "\"\<Salary\>\""}], "}"}]}], "]"}], "]"}]}], ";"}], 
-   "\[IndentingNewLine]", "\[IndentingNewLine]", 
-   RowBox[{"(*", " ", 
-    RowBox[{"Set", " ", 
-     RowBox[{"firm", "'"}], "s", " ", "initial", " ", "cash", " ", "in", " ", 
-     "the", " ", "Production", " ", "Matrix"}], " ", "*)"}], 
-   "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"Do", "[", 
-     RowBox[{
-      RowBox[{
-       RowBox[{
-        RowBox[{"BalanceSheetFirms", "[", 
-         RowBox[{"[", "i", "]"}], "]"}], "[", 
-        RowBox[{"[", "2", "]"}], "]"}], " ", "=", " ", "Cash"}], ",", 
-      RowBox[{"{", 
-       RowBox[{"i", ",", "1", ",", "NumFirms"}], "}"}]}], "]"}], 
-    ";"}]}]}]], "Input",
- CellChangeTimes->{{3.717946396936537*^9, 3.7179465654840727`*^9}, {
-   3.717950190919945*^9, 3.717950202390128*^9}, {3.717950424982296*^9, 
-   3.717950426102264*^9}, 3.7179505571046467`*^9, {3.718374863157374*^9, 
-   3.718374874941793*^9}, {3.718374904958671*^9, 3.7183749242951202`*^9}, {
-   3.718582941768252*^9, 3.718582949003408*^9}, {3.718583005612277*^9, 
-   3.7185830058122063`*^9}, {3.7185839431826773`*^9, 3.718583945554573*^9}, {
-   3.7195776061486597`*^9, 3.719577614512686*^9}, {3.719578972297678*^9, 
-   3.71957897519742*^9}, {3.719584505801104*^9, 3.7195845101183243`*^9}, {
-   3.719585575224289*^9, 3.7195855928924303`*^9}, {3.719585749942399*^9, 
-   3.7195857631494303`*^9}}],
+PriceGood = 8;
 
-Cell[BoxData[
- RowBox[{
-  RowBox[{"(*", " ", 
-   RowBox[{
-    RowBox[{"Define", " ", "functions", " ", "for", " ", "Cobb"}], "-", 
-    RowBox[{"Douglas", " ", "production", " ", "function"}]}], " ", "*)"}], 
-  "\[IndentingNewLine]", 
-  RowBox[{
-   RowBox[{
-    RowBox[{
-     RowBox[{"CostLabor", "[", "Labor_", "]"}], " ", ":=", " ", 
-     RowBox[{"PriceLabor", "*", "Labor"}]}], ";"}], "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{
-     RowBox[{"CostCapital", "[", "Capital_", "]"}], ":=", " ", 
-     RowBox[{"PriceCapital", "*", "Capital"}]}], ";"}], "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{
-     RowBox[{"Revenue", "[", 
-      RowBox[{"Capital_", ",", "Labor_"}], "]"}], " ", ":=", " ", 
-     RowBox[{"TechLevel", "*", "PriceGood", "*", 
-      RowBox[{"(", 
-       RowBox[{"Capital", "^", "ReturnsCapital"}], ")"}], "*", 
-      RowBox[{"(", 
-       RowBox[{"Labor", "^", "ReturnsLabor"}], ")"}]}]}], ";"}], 
-   "\[IndentingNewLine]", "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{
-     RowBox[{"Profits", "[", 
-      RowBox[{"Capital_", ",", "Labor_"}], "]"}], " ", ":=", " ", 
-     RowBox[{
-      RowBox[{"Revenue", "[", 
-       RowBox[{"Capital", ",", "Labor"}], "]"}], " ", "-", " ", 
-      RowBox[{"CostCapital", "[", "Capital", "]"}], "-", 
-      RowBox[{"CostLabor", "[", "Labor", "]"}]}]}], ";"}]}]}]], "Input",
- CellChangeTimes->{{3.7179440910794563`*^9, 3.71794421527057*^9}, {
-   3.717944259607407*^9, 3.717944260351413*^9}, {3.7179445336309032`*^9, 
-   3.7179445761860247`*^9}, {3.7179500510450983`*^9, 3.717950137414229*^9}, 
-   3.717951265180985*^9, 3.718643232145969*^9, {3.7195776188663483`*^9, 
-   3.719577642237732*^9}}],
+ReturnsCapital = 0.3;
+ReturnsLabor = 0.7;
 
-Cell[BoxData[
- RowBox[{
-  RowBox[{"(*", " ", 
-   RowBox[{
-   "Create", " ", "an", " ", "array", " ", "to", " ", "hold", " ", "the", " ",
-     "Revenue", " ", "from", " ", "the", " ", 
-    RowBox[{"Firm", "'"}], "s", " ", "sale", " ", "of", " ", "goods"}], " ", 
-   "*)"}], "\[IndentingNewLine]", 
-  RowBox[{
-   RowBox[{
-    RowBox[{"RevenueMatrix", " ", "=", " ", 
-     RowBox[{"ConstantArray", "[", 
-      RowBox[{"0", ",", 
-       RowBox[{"{", 
-        RowBox[{"NumFirms", ",", "5"}], "}"}]}], "]"}]}], ";"}], 
-   "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"PrintRevenue", " ", ":=", 
-     RowBox[{"Grid", "[", 
-      RowBox[{"Prepend", "[", 
-       RowBox[{"RevenueMatrix", ",", 
-        RowBox[{"{", 
-         RowBox[{
-         "\"\<Label\>\"", ",", "\"\<Cash\>\"", ",", "\"\<Output\>\"", ",", 
-          "\"\<Inventory\>\"", ",", "\"\<Price\>\""}], "}"}]}], "]"}], 
-      "]"}]}], ";"}]}]}]], "Input",
- CellChangeTimes->{{3.7195845640813293`*^9, 3.7195845914964314`*^9}, {
-  3.7195854765237093`*^9, 3.7195854773323317`*^9}}],
+TechLevel = 10;
 
-Cell[BoxData[
- RowBox[{
-  RowBox[{"(*", " ", 
-   RowBox[{
-   "Create", " ", "an", " ", "array", " ", "to", " ", "hold", " ", "the", " ",
-     "macroeconomic", " ", "statistics"}], " ", "*)"}], "\[IndentingNewLine]", 
-  RowBox[{
-   RowBox[{
-    RowBox[{"ModelOutputMatrix", " ", "=", " ", 
-     RowBox[{"ConstantArray", "[", 
-      RowBox[{"0", ",", 
-       RowBox[{"{", 
-        RowBox[{"NumPeriods", ",", "7"}], "}"}]}], "]"}]}], ";"}], 
-   "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{"PrintModelOutput", " ", ":=", 
-     RowBox[{"Grid", "[", 
-      RowBox[{"Prepend", "[", 
-       RowBox[{"ModelOutputMatrix", ",", 
-        RowBox[{"{", 
-         RowBox[{
-         "\"\<Period\>\"", ",", "\"\<Output\>\"", ",", "\"\<Nominal GDP\>\"", 
-          ",", "\"\<Global Inventory\>\"", ",", "\"\<Consumption\>\"", ",", 
-          "\"\<Employment\>\"", ",", "\"\<Unemployment Rate\>\""}], "}"}]}], 
-       "]"}], "]"}]}], ";"}]}]}]], "Input",
- CellChangeTimes->{{3.719584949830398*^9, 3.719584966727227*^9}, {
-  3.719668919076736*^9, 3.7196689299981813`*^9}, {3.7196691876399927`*^9, 
-  3.719669200174591*^9}, {3.719669449819023*^9, 3.719669449946732*^9}, {
-  3.7196695539673223`*^9, 3.719669559406049*^9}, {3.7196696948030863`*^9, 
-  3.719669695433214*^9}}],
+MPC = 1;(* Marginal Propensity to Consume *)
 
-Cell[BoxData[
- StyleBox[
-  RowBox[{"(*", " ", 
-   RowBox[{"ECONOMIC", " ", "PROCESSES"}], " ", "*)"}],
-  FontSize->18]], "Input",
- CellChangeTimes->{{3.7195845962860203`*^9, 3.719584613840873*^9}}],
+WageAdjustmentDelay = 
+  2; (* Number of periods to wait before adjusting wage up or down *)
 
-Cell[BoxData[
- RowBox[{
-  RowBox[{"ProductionAllocation", " ", ":=", " ", 
-   RowBox[{"Module", "[", 
-    RowBox[{
-     RowBox[{"{", "OptimizationMatrix", "}"}], ",", "\n", 
-     "\[IndentingNewLine]", 
-     RowBox[{"(*", " ", 
-      RowBox[{"Create", " ", "labels"}], " ", "*)"}], "\[IndentingNewLine]", 
-     RowBox[{
-      RowBox[{"Do", "[", 
-       RowBox[{
-        RowBox[{
-         RowBox[{
-          RowBox[{"ProductionMatrix", "[", 
-           RowBox[{"[", "i", "]"}], "]"}], "[", 
-          RowBox[{"[", "1", "]"}], "]"}], " ", "=", " ", "i"}], ",", 
-        RowBox[{"{", 
-         RowBox[{"i", ",", "1", ",", "NumFirms"}], "}"}]}], "]"}], ";", 
-      "\[IndentingNewLine]", "\[IndentingNewLine]", 
-      RowBox[{"(*", " ", 
-       RowBox[{"Add", " ", "the", " ", 
-        RowBox[{"firm", "'"}], "s", " ", "cash", " ", "to", " ", "the", " ", 
-        "production", " ", "matrix"}], " ", "*)"}], "\[IndentingNewLine]", 
-      RowBox[{"Do", "[", 
-       RowBox[{
-        RowBox[{
-         RowBox[{
-          RowBox[{"ProductionMatrix", "[", 
-           RowBox[{"[", "i", "]"}], "]"}], "[", 
-          RowBox[{"[", "2", "]"}], "]"}], " ", "=", " ", 
-         RowBox[{
-          RowBox[{"BalanceSheetFirms", "[", 
-           RowBox[{"[", "i", "]"}], "]"}], "[", 
-          RowBox[{"[", "2", "]"}], "]"}]}], ",", 
-        RowBox[{"{", 
-         RowBox[{"i", ",", "1", ",", "NumFirms"}], "}"}]}], "]"}], ";", 
-      "\[IndentingNewLine]", "\[IndentingNewLine]", 
-      RowBox[{"(*", " ", 
-       RowBox[{"Solve", " ", "CB", " ", "optimization"}], " ", "*)"}], 
-      "\[IndentingNewLine]", 
-      RowBox[{"OptimizationMatrix", " ", "=", " ", 
-       RowBox[{"ConstantArray", "[", 
-        RowBox[{"0", ",", "NumFirms"}], "]"}]}], ";", "\[IndentingNewLine]", 
-      RowBox[{"Do", "[", 
-       RowBox[{
-        RowBox[{
-         RowBox[{"OptimizationMatrix", "[", 
-          RowBox[{"[", "i", "]"}], "]"}], " ", "=", " ", 
-         "\[IndentingNewLine]", 
-         RowBox[{"Maximize", "[", 
-          RowBox[{
-           RowBox[{"{", 
-            RowBox[{
-             RowBox[{"Profits", "[", 
-              RowBox[{"K", ",", "L"}], "]"}], ",", 
-             RowBox[{"K", "\[GreaterEqual]", " ", "0"}], ",", 
-             RowBox[{"L", "\[GreaterEqual]", " ", "0"}], ",", 
-             RowBox[{
-              RowBox[{
-               RowBox[{"CostCapital", "[", "K", "]"}], "+", 
-               RowBox[{"CostLabor", "[", "L", "]"}]}], "\[LessEqual]", " ", 
-              RowBox[{
-               RowBox[{"ProductionMatrix", "[", 
-                RowBox[{"[", "i", "]"}], "]"}], "[", 
-               RowBox[{"[", "2", "]"}], "]"}]}]}], "}"}], ",", 
-           RowBox[{"{", 
-            RowBox[{"K", ",", "L"}], "}"}]}], "]"}]}], ",", 
-        RowBox[{"{", 
-         RowBox[{"i", ",", "1", ",", "NumFirms"}], "}"}]}], "]"}], ";", 
-      "\[IndentingNewLine]", "\[IndentingNewLine]", 
-      RowBox[{"(*", " ", 
-       RowBox[{
-        RowBox[{"Set", " ", "initial", " ", "capital"}], ",", " ", 
-        RowBox[{"initial", " ", "labor"}], ",", " ", 
-        RowBox[{"capital", " ", "target"}], ",", " ", 
-        RowBox[{"labor", " ", "target"}]}], " ", "*)"}], 
-      "\[IndentingNewLine]", 
-      RowBox[{"Do", "[", 
-       RowBox[{
-        RowBox[{"{", "\[IndentingNewLine]", 
-         RowBox[{
-          RowBox[{
-           RowBox[{
-            RowBox[{"ProductionMatrix", "[", 
-             RowBox[{"[", "i", "]"}], "]"}], "[", 
-            RowBox[{"[", "3", "]"}], "]"}], " ", "=", " ", "InitialCapital"}],
-           ";", "\[IndentingNewLine]", 
-          RowBox[{
-           RowBox[{
-            RowBox[{"ProductionMatrix", "[", 
-             RowBox[{"[", "i", "]"}], "]"}], "[", 
-            RowBox[{"[", "4", "]"}], "]"}], " ", "=", " ", "InitialLabor"}], 
-          ";", "\[IndentingNewLine]", 
-          RowBox[{
-           RowBox[{
-            RowBox[{"ProductionMatrix", "[", 
-             RowBox[{"[", "i", "]"}], "]"}], "[", 
-            RowBox[{"[", "5", "]"}], "]"}], " ", "=", " ", 
-           RowBox[{"Floor", "[", 
-            RowBox[{"Last", "[", 
-             RowBox[{
-              RowBox[{"Flatten", "[", 
-               RowBox[{"OptimizationMatrix", "[", 
-                RowBox[{"[", "i", "]"}], "]"}], "]"}], "[", 
-              RowBox[{"[", "2", "]"}], "]"}], "]"}], "]"}]}], ";", 
-          "\[IndentingNewLine]", 
-          RowBox[{
-           RowBox[{
-            RowBox[{"ProductionMatrix", "[", 
-             RowBox[{"[", "i", "]"}], "]"}], "[", 
-            RowBox[{"[", "6", "]"}], "]"}], " ", "=", " ", 
-           RowBox[{"Floor", "[", 
-            RowBox[{"Last", "[", 
-             RowBox[{
-              RowBox[{"Flatten", "[", 
-               RowBox[{"OptimizationMatrix", "[", 
-                RowBox[{"[", "i", "]"}], "]"}], "]"}], "[", 
-              RowBox[{"[", "3", "]"}], "]"}], "]"}], "]"}]}], ";"}], " ", 
-         "\[IndentingNewLine]", "}"}], ",", 
-        RowBox[{"{", 
-         RowBox[{"i", ",", "1", ",", "NumFirms"}], "}"}]}], "]"}], ";", 
-      "\[IndentingNewLine]", "\[IndentingNewLine]", 
-      RowBox[{"(*", " ", 
-       RowBox[{
-        RowBox[{"Calculate", " ", "revenue"}], ",", " ", "costs", ",", " ", 
-        "profits"}], "*)"}], "\[IndentingNewLine]", 
-      RowBox[{"Do", "[", 
-       RowBox[{
-        RowBox[{"{", "\[IndentingNewLine]", 
-         RowBox[{
-          RowBox[{
-           RowBox[{
-            RowBox[{"ProductionMatrix", "[", 
-             RowBox[{"[", "i", "]"}], "]"}], "[", 
-            RowBox[{"[", "7", "]"}], "]"}], " ", "=", " ", 
-           RowBox[{"Revenue", "[", 
-            RowBox[{
-             RowBox[{
-              RowBox[{"ProductionMatrix", "[", 
-               RowBox[{"[", "i", "]"}], "]"}], "[", 
-              RowBox[{"[", "5", "]"}], "]"}], ",", 
-             RowBox[{
-              RowBox[{"ProductionMatrix", "[", 
-               RowBox[{"[", "i", "]"}], "]"}], "[", 
-              RowBox[{"[", "6", "]"}], "]"}]}], "]"}]}], ";", 
-          "\[IndentingNewLine]", 
-          RowBox[{
-           RowBox[{
-            RowBox[{"ProductionMatrix", "[", 
-             RowBox[{"[", "i", "]"}], "]"}], "[", 
-            RowBox[{"[", "8", "]"}], "]"}], " ", "=", " ", 
-           RowBox[{"CostCapital", "[", 
-            RowBox[{
-             RowBox[{"ProductionMatrix", "[", 
-              RowBox[{"[", "i", "]"}], "]"}], "[", 
-             RowBox[{"[", "5", "]"}], "]"}], "]"}]}], ";", 
-          "\[IndentingNewLine]", 
-          RowBox[{
-           RowBox[{
-            RowBox[{"ProductionMatrix", "[", 
-             RowBox[{"[", "i", "]"}], "]"}], "[", 
-            RowBox[{"[", "9", "]"}], "]"}], " ", "=", 
-           RowBox[{"CostLabor", "[", 
-            RowBox[{
-             RowBox[{"ProductionMatrix", "[", 
-              RowBox[{"[", "i", "]"}], "]"}], "[", 
-             RowBox[{"[", "6", "]"}], "]"}], "]"}]}], ";", 
-          "\[IndentingNewLine]", 
-          RowBox[{
-           RowBox[{
-            RowBox[{"ProductionMatrix", "[", 
-             RowBox[{"[", "i", "]"}], "]"}], "[", 
-            RowBox[{"[", "10", "]"}], "]"}], " ", "=", " ", 
-           RowBox[{
-            RowBox[{
-             RowBox[{"ProductionMatrix", "[", 
-              RowBox[{"[", "i", "]"}], "]"}], "[", 
-             RowBox[{"[", "7", "]"}], "]"}], " ", "-", " ", 
-            RowBox[{
-             RowBox[{"ProductionMatrix", "[", 
-              RowBox[{"[", "i", "]"}], "]"}], "[", 
-             RowBox[{"[", "8", "]"}], "]"}], " ", "-", " ", 
-            RowBox[{
-             RowBox[{"ProductionMatrix", "[", 
-              RowBox[{"[", "i", "]"}], "]"}], "[", 
-             RowBox[{"[", "9", "]"}], "]"}]}]}], ";"}], "\[IndentingNewLine]",
-          "}"}], ",", " ", 
-        RowBox[{"{", 
-         RowBox[{"i", ",", "1", ",", "NumFirms"}], "}"}]}], "]"}], ";", 
-      "\[IndentingNewLine]", "\[IndentingNewLine]", 
-      RowBox[{"(*", " ", 
-       RowBox[{
-       "Calculate", " ", "rental", " ", "rate", " ", "of", " ", "capital", 
-        " ", "and", " ", "salary", " ", "offers"}], " ", "*)"}], 
-      "\[IndentingNewLine]", 
-      RowBox[{"Do", "[", 
-       RowBox[{
-        RowBox[{"{", "\[IndentingNewLine]", 
-         RowBox[{
-          RowBox[{
-           RowBox[{
-            RowBox[{"ProductionMatrix", "[", 
-             RowBox[{"[", "i", "]"}], "]"}], "[", 
-            RowBox[{"[", "11", "]"}], "]"}], " ", "=", 
-           RowBox[{"If", "[", " ", 
-            RowBox[{
-             RowBox[{
-              RowBox[{
-               RowBox[{"ProductionMatrix", "[", 
-                RowBox[{"[", "i", "]"}], "]"}], "[", 
-               RowBox[{"[", "5", "]"}], "]"}], " ", "\[Equal]", "0"}], ",", 
-             "0", ",", 
-             RowBox[{
-              RowBox[{
-               RowBox[{"ProductionMatrix", "[", 
-                RowBox[{"[", "i", "]"}], "]"}], "[", 
-               RowBox[{"[", "8", "]"}], "]"}], "/", 
-              RowBox[{
-               RowBox[{"ProductionMatrix", "[", 
-                RowBox[{"[", "i", "]"}], "]"}], "[", 
-               RowBox[{"[", "5", "]"}], "]"}]}]}], "]"}]}], ";", 
-          "\[IndentingNewLine]", 
-          RowBox[{
-           RowBox[{
-            RowBox[{"ProductionMatrix", "[", 
-             RowBox[{"[", "i", "]"}], "]"}], "[", 
-            RowBox[{"[", "12", "]"}], "]"}], " ", "=", 
-           RowBox[{"If", "[", 
-            RowBox[{
-             RowBox[{
-              RowBox[{
-               RowBox[{"ProductionMatrix", "[", 
-                RowBox[{"[", "i", "]"}], "]"}], "[", 
-               RowBox[{"[", "6", "]"}], "]"}], "\[Equal]", "0"}], ",", "0", 
-             ",", " ", 
-             RowBox[{
-              RowBox[{
-               RowBox[{"ProductionMatrix", "[", 
-                RowBox[{"[", "i", "]"}], "]"}], "[", 
-               RowBox[{"[", "9", "]"}], "]"}], "/", 
-              RowBox[{
-               RowBox[{"ProductionMatrix", "[", 
-                RowBox[{"[", "i", "]"}], "]"}], "[", 
-               RowBox[{"[", "6", "]"}], "]"}]}]}], "]"}]}], ";"}], 
-         "\[IndentingNewLine]", "}"}], ",", 
-        RowBox[{"{", 
-         RowBox[{"i", ",", "1", ",", "NumFirms"}], "}"}]}], "]"}], ";", 
-      "\[IndentingNewLine]", "\[IndentingNewLine]", 
-      RowBox[{"{", "ProductionMatrix", "}"}]}]}], "]"}]}], ";"}]], "Input",
- CellChangeTimes->{{3.7179466158953943`*^9, 3.717946620328658*^9}, {
-   3.717946711516873*^9, 3.717946846664076*^9}, {3.7179469343338547`*^9, 
-   3.7179469669800386`*^9}, {3.717946998947818*^9, 3.717947012768062*^9}, {
-   3.7179482693629093`*^9, 3.717948291270897*^9}, {3.7179483214323273`*^9, 
-   3.717948325024132*^9}, {3.717948416884246*^9, 3.717948464098669*^9}, {
-   3.717948593983034*^9, 3.717948635693803*^9}, {3.717948754446773*^9, 
-   3.717948767226943*^9}, {3.717949895599938*^9, 3.717950030075585*^9}, {
-   3.717950172383265*^9, 3.717950180263748*^9}, {3.7179502141068974`*^9, 
-   3.717950474522129*^9}, {3.717950541990663*^9, 3.7179505436053123`*^9}, {
-   3.71795058285669*^9, 3.717950587186521*^9}, {3.718374890431353*^9, 
-   3.71837496777568*^9}, {3.7183750055794287`*^9, 3.718375120140051*^9}, {
-   3.718375232661743*^9, 3.7183752998360023`*^9}, {3.718642889542026*^9, 
-   3.718642890529854*^9}, {3.718643247182556*^9, 3.7186432701194067`*^9}, {
-   3.718643692884671*^9, 3.718643703715292*^9}, {3.7186437722564783`*^9, 
-   3.718643774445888*^9}, {3.718643922459031*^9, 3.718643983546233*^9}, {
-   3.719578947768111*^9, 3.7195789687147923`*^9}, {3.719584737419435*^9, 
-   3.719584739849217*^9}, {3.719585601296793*^9, 3.719585734350659*^9}, {
-   3.719585772522648*^9, 3.719585788104706*^9}, {3.7195858202187862`*^9, 
-   3.719585902379149*^9}, {3.7195859678818607`*^9, 3.7195859763765182`*^9}, {
-   3.719586134476282*^9, 3.7195861951300077`*^9}, {3.719609331551691*^9, 
-   3.7196093333328648`*^9}, {3.719609841841937*^9, 3.7196098426500072`*^9}, {
-   3.719609923416992*^9, 3.71960992440874*^9}, {3.719839173423232*^9, 
-   3.719839184016427*^9}, {3.719839538630315*^9, 3.71983961017412*^9}, {
-   3.719840103812907*^9, 3.719840118532257*^9}, {3.719840442298861*^9, 
-   3.7198404483617907`*^9}, {3.719840512295874*^9, 3.719840514029182*^9}, 
-   3.719842052239977*^9, 3.721402826594399*^9, {3.72140393109114*^9, 
-   3.7214039381596212`*^9}, {3.721424306540718*^9, 3.721424318212117*^9}, {
-   3.72142493874751*^9, 3.7214249466806383`*^9}, {3.7214250862911167`*^9, 
-   3.721425097713697*^9}, {3.721582769068388*^9, 3.721582777082838*^9}}],
+(* PROGRAM INITIALIZATION *)
 
-Cell[BoxData[
- RowBox[{
-  RowBox[{"PurchaseCapital", ":=", 
-   RowBox[{"Do", "[", "\[IndentingNewLine]", 
-    RowBox[{
-     RowBox[{"{", 
-      RowBox[{
-       RowBox[{
-        RowBox[{
-         RowBox[{"ProductionMatrix", "[", 
-          RowBox[{"[", "i", "]"}], "]"}], "[", 
-         RowBox[{"[", "3", "]"}], "]"}], " ", "=", " ", 
-        RowBox[{
-         RowBox[{"ProductionMatrix", "[", 
-          RowBox[{"[", "i", "]"}], "]"}], "[", 
-         RowBox[{"[", "5", "]"}], "]"}]}], ",", "\[IndentingNewLine]", 
-       RowBox[{
-        RowBox[{
-         RowBox[{"BalanceSheetFirms", "[", 
-          RowBox[{"[", "i", "]"}], "]"}], "[", 
-         RowBox[{"[", "2", "]"}], "]"}], " ", "-=", " ", 
-        RowBox[{
-         RowBox[{"ProductionMatrix", "[", 
-          RowBox[{"[", "i", "]"}], "]"}], "[", 
-         RowBox[{"[", "8", "]"}], "]"}]}]}], "}"}], "\[IndentingNewLine]", 
-     ",", 
-     RowBox[{"{", 
-      RowBox[{"i", ",", "1", ",", "NumFirms"}], "}"}]}], "]"}]}], 
-  ";"}]], "Input",
- CellChangeTimes->CompressedData["
-1:eJwdzFsog2EAxvHhQkq7mGxE2DDlkCZjOa3RIkqsuNnMoQyrRZRIzmYsjRwy
-Sk6TaEI0WcuNY7mguBARqWX7UmayhfA+38XTr56LP7emUVbry2Awosmgqanb
-kLVLSVxj7+Pw4STDCAvuq0xwbjRxDaaZVbStStEG5PyFb8Hft1I37anJA1PU
-Hd9Q4RL4ZRODXAdsyBc2hEJd3FwEZBXKYqAm350Kr3ccQvq3xubDhct4OcwN
-KqkUE30urPVQntdtg4Hn80ewOGCowkC0i89pk19baqFzqlkDd+3KNljkq26H
-emlhJ9yrZOngQVHV4DixiXs9DIcmc4xw/UO7BA3L1k14E8ncggrBGHuC+Fk9
-woGxWl0qrEt/zYCNvRYx/PHflsAp6Z0KvnhX1NBpvm2D/BlVJ+RZjFoYEewz
-DaO82lVYbr/agY4n3iHcf+o6g+9K2y30Ppsf6c6DjILM7CzOJFHV9xUNzQPH
-fNjTwmXPWijJiUdJy6I2QplWor4sDDYvehKgkxIlwZzvfiHscVMiaNNkhsiJ
-RoGC9h9jXyzH
-  "]],
+(* Create Balance Sheets and funtions to print them *)
 
-Cell[BoxData[
- RowBox[{
-  RowBox[{"LaborSearch", " ", ":=", " ", 
-   RowBox[{"Module", "[", 
-    RowBox[{
-     RowBox[{"{", 
-      RowBox[{
-      "EmploymentLevel", ",", "FirmOrdering", ",", "TempFirmBalanceSheet", 
-       ",", "FirmLookup", ",", " ", "i", ",", "j"}], "}"}], ",", 
-     "\[IndentingNewLine]", "\[IndentingNewLine]", 
-     RowBox[{"(*", " ", 
-      RowBox[{"Calculate", " ", "reservation", " ", "wages"}], " ", "*)"}], 
-     "\[IndentingNewLine]", 
-     RowBox[{
-      RowBox[{"Do", "[", "\[IndentingNewLine]", 
-       RowBox[{
-        RowBox[{
-         RowBox[{
-          RowBox[{
-           RowBox[{"BalanceSheetHouseholds", "[", 
-            RowBox[{"[", "i", "]"}], "]"}], "[", 
-           RowBox[{"[", "6", "]"}], "]"}], " ", "=", " ", "PriceLabor"}], ";",
-          "\[IndentingNewLine]", "\[IndentingNewLine]", 
-         RowBox[{"(*", " ", 
-          RowBox[{
-           RowBox[{
-           "If", " ", "unemployed", " ", "for", " ", "more", " ", "periods", 
-            " ", "than", " ", "the", " ", "delay"}], ",", " ", 
-           RowBox[{
-           "then", " ", "adjust", " ", "the", " ", "reservation", " ", "wage",
-             " ", "down", " ", "by", " ", "a", " ", "dollar"}]}], " ", "*)"}],
-          "\[IndentingNewLine]", 
-         RowBox[{"If", "[", 
-          RowBox[{
-           RowBox[{
-            RowBox[{
-             RowBox[{"BalanceSheetHouseholds", "[", 
-              RowBox[{"[", "i", "]"}], "]"}], "[", 
-             RowBox[{"[", "8", "]"}], "]"}], "\[LessEqual]", 
-            RowBox[{"-", " ", "WageAdjustmentDelay"}]}], ",", 
-           RowBox[{
-            RowBox[{
-             RowBox[{"BalanceSheetHouseholds", "[", 
-              RowBox[{"[", "i", "]"}], "]"}], "[", 
-             RowBox[{"[", "6", "]"}], "]"}], "-=", 
-            RowBox[{"-", "1"}]}]}], "]"}], ";", "\[IndentingNewLine]", 
-         "\[IndentingNewLine]", 
-         RowBox[{"(*", " ", 
-          RowBox[{
-           RowBox[{
-           "If", " ", "employed", " ", "for", " ", "more", " ", "periods", 
-            " ", "than", " ", "the", " ", "delay"}], ",", " ", 
-           RowBox[{
-           "then", " ", "adjust", " ", "the", " ", "reservation", " ", "wage",
-             " ", "up", " ", "by", " ", "a", " ", "dollar"}]}], " ", "*)"}], 
-         "\[IndentingNewLine]", 
-         RowBox[{"If", "[", 
-          RowBox[{
-           RowBox[{
-            RowBox[{
-             RowBox[{"BalanceSheetHouseholds", "[", 
-              RowBox[{"[", "i", "]"}], "]"}], "[", 
-             RowBox[{"[", "8", "]"}], "]"}], "\[GreaterEqual]", " ", 
-            "WageAdjustmentDelay"}], ",", 
-           RowBox[{
-            RowBox[{
-             RowBox[{"BalanceSheetHouseholds", "[", 
-              RowBox[{"[", "i", "]"}], "]"}], "[", 
-             RowBox[{"[", "6", "]"}], "]"}], "+=", "1"}]}], "]"}], ";"}], 
-        "\[IndentingNewLine]", "\[IndentingNewLine]", ",", 
-        RowBox[{"{", 
-         RowBox[{"i", ",", "1", ",", "NumHouseholds"}], "}"}]}], "]"}], ";", 
-      "\[IndentingNewLine]", "\[IndentingNewLine]", 
-      RowBox[{"(*", " ", 
-       RowBox[{
-       "Calculate", " ", "the", " ", "number", " ", "of", " ", "open", " ", 
-        "positions", " ", "and", " ", "instantiate", " ", "a", " ", "matrix", 
-        " ", "to", " ", "represent", " ", "those", " ", "jobs"}], " ", "*)"}],
-       "\[IndentingNewLine]", 
-      RowBox[{"EmploymentLevel", " ", "=", " ", 
-       RowBox[{"Min", "[", 
-        RowBox[{
-         RowBox[{"Sum", "[", 
-          RowBox[{
-           RowBox[{
-            RowBox[{"ProductionMatrix", "[", 
-             RowBox[{"[", "i", "]"}], "]"}], "[", 
-            RowBox[{"[", "6", "]"}], "]"}], ",", 
-           RowBox[{"{", 
-            RowBox[{"i", ",", "1", ",", "NumFirms"}], "}"}]}], "]"}], ",", 
-         "NumHouseholds"}], "]"}]}], ";", "\[IndentingNewLine]", 
-      "\[IndentingNewLine]", 
-      RowBox[{"(*", " ", 
-       RowBox[{"Sort", " ", 
-        RowBox[{"firm", "'"}], "s", " ", "salary", " ", "offers", " ", "and", 
-        " ", "household", " ", "reservation", " ", 
-        RowBox[{"wages", ":", " ", 
-         RowBox[{"low", " ", "to", " ", "high"}]}]}], " ", "*)"}], 
-      "\[IndentingNewLine]", 
-      RowBox[{"ProductionMatrix", " ", "=", " ", 
-       RowBox[{"SortBy", "[", 
-        RowBox[{"ProductionMatrix", ",", 
-         RowBox[{
-          RowBox[{"#", "[", 
-           RowBox[{"[", "12", "]"}], "]"}], "&"}]}], "]"}]}], ";", 
-      "\[IndentingNewLine]", 
-      RowBox[{"BalanceSheetHouseholds", " ", "=", " ", 
-       RowBox[{"SortBy", "[", 
-        RowBox[{"BalanceSheetHouseholds", ",", 
-         RowBox[{
-          RowBox[{"#", "[", 
-           RowBox[{"[", "6", "]"}], "]"}], "&"}]}], "]"}]}], ";", 
-      "\[IndentingNewLine]", "\[IndentingNewLine]", 
-      RowBox[{"(*", " ", 
-       RowBox[{
-       "Ordering", " ", "the", " ", "firms", " ", "is", " ", "a", " ", 
-        "little", " ", "more", " ", "tricky"}], " ", "*)"}], 
-      "\[IndentingNewLine]", 
-      RowBox[{"FirmOrdering", " ", "=", " ", 
-       RowBox[{"ConstantArray", "[", 
-        RowBox[{"0", ",", "NumFirms"}], "]"}]}], ";", " ", 
-      RowBox[{"(*", " ", 
-       RowBox[{"Create", " ", "array"}], " ", "*)"}], "\[IndentingNewLine]", 
-      RowBox[{"Do", "[", 
-       RowBox[{
-        RowBox[{
-         RowBox[{"FirmOrdering", "[", 
-          RowBox[{"[", "i", "]"}], "]"}], " ", "=", " ", 
-         RowBox[{
-          RowBox[{"ProductionMatrix", "[", 
-           RowBox[{"[", "i", "]"}], "]"}], "[", 
-          RowBox[{"[", "1", "]"}], "]"}]}], ",", 
-        RowBox[{"{", 
-         RowBox[{"i", ",", "1", ",", "NumFirms"}], "}"}]}], "]"}], ";", " ", 
-      RowBox[{"(*", " ", 
-       RowBox[{"Populate", " ", "array"}], " ", "*)"}], "\[IndentingNewLine]", 
-      RowBox[{"TempFirmBalanceSheet", " ", "=", " ", 
-       RowBox[{"ConstantArray", "[", 
-        RowBox[{"0", ",", "NumFirms"}], "]"}]}], ";", "\[IndentingNewLine]", 
-      RowBox[{"(*", " ", 
-       RowBox[{
-       "Match", " ", "the", " ", "ordering", " ", "of", " ", "the", " ", 
-        "firms", " ", "in", " ", "the", " ", "balance", " ", "sheet", " ", 
-        "with", " ", "the", " ", "ordering", " ", "of", " ", "the", " ", 
-        "firms", " ", "in", " ", "the", " ", "production", " ", "matrix"}], 
-       " ", "*)"}], "\[IndentingNewLine]", 
-      RowBox[{"For", "[", 
-       RowBox[{
-        RowBox[{"i", "=", "1"}], ",", 
-        RowBox[{"i", "\[LessEqual]", " ", "NumFirms"}], ",", " ", 
-        RowBox[{"i", "++"}], ",", "\[IndentingNewLine]", 
-        RowBox[{
-         RowBox[{"FirmLookup", " ", "=", " ", 
-          RowBox[{"FirmOrdering", "[", 
-           RowBox[{"[", "i", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
-         RowBox[{"For", "[", 
-          RowBox[{
-           RowBox[{"j", " ", "=", " ", "1"}], ",", " ", 
-           RowBox[{"j", "\[LessEqual]", " ", "NumFirms"}], ",", " ", 
-           RowBox[{"j", "++"}], ",", "\[IndentingNewLine]", 
-           RowBox[{"If", "[", 
-            RowBox[{
-             RowBox[{
-              RowBox[{
-               RowBox[{"BalanceSheetFirms", "[", 
-                RowBox[{"[", "j", "]"}], "]"}], "[", 
-               RowBox[{"[", "1", "]"}], "]"}], " ", "\[Equal]", " ", 
-              "FirmLookup"}], ",", "\[IndentingNewLine]", 
-             RowBox[{
-              RowBox[{
-               RowBox[{"TempFirmBalanceSheet", "[", 
-                RowBox[{"[", "i", "]"}], "]"}], "=", 
-               RowBox[{"BalanceSheetFirms", "[", 
-                RowBox[{"[", "j", "]"}], "]"}]}], ";", 
-              RowBox[{"Break", "[", "]"}]}]}], "]"}]}], "\[IndentingNewLine]",
-           "]"}]}]}], "\[IndentingNewLine]", "]"}], ";", 
-      "\[IndentingNewLine]", 
-      RowBox[{"BalanceSheetFirms", " ", "=", " ", "TempFirmBalanceSheet"}], 
-      ";", "\[IndentingNewLine]", "\[IndentingNewLine]", 
-      RowBox[{"(*", 
-       RowBox[{
-        RowBox[{"BalanceSheetFirms", " ", "=", " ", 
-         RowBox[{"BalanceSheetFirms", "[", 
-          RowBox[{"[", " ", 
-           RowBox[{"Ordering", " ", "@", " ", "FirmOrdering"}], "]"}], 
-          "]"}]}], ";"}], "*)"}], "\[IndentingNewLine]", 
-      "\[IndentingNewLine]", 
-      RowBox[{"(*", " ", 
-       RowBox[{"Hire", " ", "Labor"}], " ", "*)"}], "\[IndentingNewLine]", 
-      RowBox[{"i", "=", "1"}], ";", "\[IndentingNewLine]", 
-      RowBox[{"j", "=", "1"}], ";", "\[IndentingNewLine]", 
-      RowBox[{"While", "[", 
-       RowBox[{
-        RowBox[{"i", "\[LessEqual]", " ", "EmploymentLevel"}], ",", 
-        "\[IndentingNewLine]", "\[IndentingNewLine]", 
-        RowBox[{"If", "[", 
-         RowBox[{
-          RowBox[{
-           RowBox[{"(", 
-            RowBox[{
-             RowBox[{
-              RowBox[{"BalanceSheetHouseholds", "[", 
-               RowBox[{"[", "i", "]"}], "]"}], "[", 
-              RowBox[{"[", "6", "]"}], "]"}], " ", "\[LessEqual]", " ", 
-             RowBox[{
-              RowBox[{"ProductionMatrix", "[", 
-               RowBox[{"[", "j", "]"}], "]"}], "[", 
-              RowBox[{"[", "12", "]"}], "]"}]}], ")"}], "&&", 
-           RowBox[{"(", 
-            RowBox[{
-             RowBox[{
-              RowBox[{"ProductionMatrix", "[", 
-               RowBox[{"[", "j", "]"}], "]"}], "[", 
-              RowBox[{"[", "2", "]"}], "]"}], "\[GreaterEqual]", " ", 
-             RowBox[{
-              RowBox[{"ProductionMatrix", "[", 
-               RowBox[{"[", "j", "]"}], "]"}], "[", 
-              RowBox[{"[", "12", "]"}], "]"}]}], ")"}], " ", "&&", " ", 
-           RowBox[{"(", 
-            RowBox[{
-             RowBox[{
-              RowBox[{"ProductionMatrix", "[", 
-               RowBox[{"[", "j", "]"}], "]"}], "[", 
-              RowBox[{"[", "4", "]"}], "]"}], " ", "<", " ", 
-             RowBox[{
-              RowBox[{"ProductionMatrix", "[", 
-               RowBox[{"[", "j", "]"}], "]"}], "[", 
-              RowBox[{"[", "6", "]"}], "]"}]}], ")"}]}], ",", " ", 
-          RowBox[{"(*", " ", 
-           RowBox[{
-            RowBox[{
-             RowBox[{
-              RowBox[{
-               RowBox[{"If", " ", "Salary", " ", "Offer"}], " ", ">", " ", 
-               RowBox[{"Reservation", " ", "Wage"}]}], " ", "&"}], " ", 
-             "Firm", " ", "has", " ", "cash", " ", "on", " ", "hand", " ", 
-             "to", " ", "pay", " ", "the", " ", "wage"}], ",", " ", 
-            RowBox[{"&", " ", "the", " ", "firm", " ", 
-             RowBox[{"hasn", "'"}], "t", " ", "met", " ", 
-             RowBox[{"it", "'"}], "s", " ", "labor", " ", "target"}]}], " ", 
-           "*)"}], "\[IndentingNewLine]", 
-          RowBox[{
-           RowBox[{
-            RowBox[{
-             RowBox[{"BalanceSheetHouseholds", "[", 
-              RowBox[{"[", "i", "]"}], "]"}], "[", 
-             RowBox[{"[", "2", "]"}], "]"}], "+=", " ", 
-            RowBox[{
-             RowBox[{"ProductionMatrix", "[", 
-              RowBox[{"[", "j", "]"}], "]"}], "[", 
-             RowBox[{"[", "12", "]"}], "]"}]}], ";", " ", 
-           RowBox[{"(*", " ", 
-            RowBox[{
-            "Add", " ", "cash", " ", "to", " ", "household", " ", "based", 
-             " ", "off", " ", "cost", " ", "of", " ", "labor"}], " ", "*)"}], 
-           "\[IndentingNewLine]", 
-           RowBox[{
-            RowBox[{
-             RowBox[{"BalanceSheetFirms", "[", 
-              RowBox[{"[", "j", "]"}], "]"}], "[", 
-             RowBox[{"[", "2", "]"}], "]"}], " ", "-=", 
-            RowBox[{
-             RowBox[{"ProductionMatrix", "[", 
-              RowBox[{"[", "j", "]"}], "]"}], "[", 
-             RowBox[{"[", "12", "]"}], "]"}]}], ";", 
-           RowBox[{"(*", " ", 
-            RowBox[{"Subtract", " ", "cash", " ", "from", " ", "firm"}], " ", 
-            "*)"}], "\[IndentingNewLine]", 
-           RowBox[{
-            RowBox[{
-             RowBox[{"ProductionMatrix", "[", 
-              RowBox[{"[", "j", "]"}], "]"}], "[", 
-             RowBox[{"[", "4", "]"}], "]"}], "+=", " ", "1"}], ";", 
-           RowBox[{"(*", " ", 
-            RowBox[{
-            "Add", " ", "unit", " ", "of", " ", "labor", " ", "to", " ", 
-             "firm"}], " ", "*)"}], "\[IndentingNewLine]", 
-           RowBox[{
-            RowBox[{
-             RowBox[{"BalanceSheetHouseholds", "[", 
-              RowBox[{"[", "i", "]"}], "]"}], "[", 
-             RowBox[{"[", "7", "]"}], "]"}], "=", "1"}], ";", 
-           RowBox[{"(*", " ", 
-            RowBox[{"Update", " ", "employment", " ", "status"}], " ", "*)"}],
-            "\[IndentingNewLine]", 
-           RowBox[{"If", "[", 
-            RowBox[{
-             RowBox[{
-              RowBox[{
-               RowBox[{"BalanceSheetHouseholds", "[", 
-                RowBox[{"[", "i", "]"}], "]"}], "[", 
-               RowBox[{"[", "8", "]"}], "]"}], "<", "0"}], ",", 
-             RowBox[{
-              RowBox[{
-               RowBox[{"BalanceSheetHouseholds", "[", 
-                RowBox[{"[", "i", "]"}], "]"}], "[", 
-               RowBox[{"[", "8", "]"}], "]"}], "=", "1"}], ",", 
-             RowBox[{
-              RowBox[{
-               RowBox[{"BalanceSheetHouseholds", "[", 
-                RowBox[{"[", "i", "]"}], "]"}], "[", 
-               RowBox[{"[", "8", "]"}], "]"}], "+=", "1"}]}], "]"}], ";", " ", 
-           RowBox[{"(*", " ", 
-            RowBox[{"Update", " ", "cumulative"}], " ", "*)"}], 
-           "\[IndentingNewLine]", 
-           RowBox[{"j", "=", "1"}], ";", "\[IndentingNewLine]", 
-           RowBox[{"i", "+=", "1"}], ";"}], " ", 
-          RowBox[{"(*", " ", 
-           RowBox[{"Go", " ", "to", " ", "next", " ", "house"}], " ", "*)"}], 
-          "\[IndentingNewLine]", ",", "\[IndentingNewLine]", 
-          RowBox[{
-           RowBox[{"j", "+=", "1"}], ";", " ", 
-           RowBox[{"(*", " ", 
-            RowBox[{
-             RowBox[{"If", " ", "not"}], ",", " ", 
-             RowBox[{
-             "households", " ", "search", " ", "for", " ", "the", " ", "next",
-               " ", "highest", " ", "salary", " ", "offer"}]}], " ", "*)"}], 
-           "\[IndentingNewLine]", 
-           RowBox[{"If", "[", 
-            RowBox[{
-             RowBox[{"j", ">", "NumFirms"}], ",", 
-             RowBox[{
-              RowBox[{"j", "=", "1"}], ";", " ", 
-              RowBox[{"i", "+=", "1"}]}]}], "]"}]}]}], "  ", 
-         RowBox[{"(*", " ", 
-          RowBox[{
-          "If", " ", "checked", " ", "all", " ", "firms", " ", "then", " ", 
-           "go", " ", "to", " ", "next", " ", "house"}], " ", "*)"}], 
-         "\[IndentingNewLine]", "]"}]}], " ", "\[IndentingNewLine]", "]"}], 
-      ";", "\[IndentingNewLine]", "\[IndentingNewLine]", 
-      RowBox[{"(*", " ", 
-       RowBox[{
-        RowBox[{
-        "If", " ", "not", " ", "employed", " ", "set", " ", "the", " ", 
-         "cumulative", " ", "employment", " ", "to"}], " ", "-", "1"}], " ", 
-       "*)"}], "\[IndentingNewLine]", 
-      RowBox[{"Do", "[", "\[IndentingNewLine]", 
-       RowBox[{
-        RowBox[{"If", "[", 
-         RowBox[{
-          RowBox[{
-           RowBox[{
-            RowBox[{"BalanceSheetHouseholds", "[", 
-             RowBox[{"[", "i", "]"}], "]"}], "[", 
-            RowBox[{"[", "7", "]"}], "]"}], "\[Equal]", "0"}], ",", 
-          "\[IndentingNewLine]", "\[IndentingNewLine]", 
-          RowBox[{"If", "[", 
-           RowBox[{
-            RowBox[{
-             RowBox[{
-              RowBox[{"BalanceSheetHouseholds", "[", 
-               RowBox[{"[", "i", "]"}], "]"}], "[", 
-              RowBox[{"[", "8", "]"}], "]"}], ">", "0"}], ",", 
-            "\[IndentingNewLine]", 
-            RowBox[{
-             RowBox[{
-              RowBox[{"BalanceSheetHouseholds", "[", 
-               RowBox[{"[", "i", "]"}], "]"}], "[", 
-              RowBox[{"[", "8", "]"}], "]"}], "=", 
-             RowBox[{"-", "1"}]}], ",", "\[IndentingNewLine]", 
-            RowBox[{
-             RowBox[{
-              RowBox[{"BalanceSheetHouseholds", "[", 
-               RowBox[{"[", "i", "]"}], "]"}], "[", 
-              RowBox[{"[", "8", "]"}], "]"}], "-=", "1"}]}], "]"}]}], "]"}], 
-        ",", "\[IndentingNewLine]", "\[IndentingNewLine]", 
-        RowBox[{"{", 
-         RowBox[{"i", ",", "1", ",", "NumHouseholds"}], "}"}]}], "]"}], ";", 
-      "\[IndentingNewLine]", "\[IndentingNewLine]", 
-      RowBox[{"(*", " ", 
-       RowBox[{"Resort", " ", "by", " ", "label"}], " ", "*)"}], 
-      "\[IndentingNewLine]", 
-      RowBox[{"ProductionMatrix", " ", "=", " ", 
-       RowBox[{"SortBy", "[", 
-        RowBox[{"ProductionMatrix", ",", 
-         RowBox[{
-          RowBox[{"#1", "[", 
-           RowBox[{"[", "1", "]"}], "]"}], "&"}]}], "]"}]}], ";", 
-      "\[IndentingNewLine]", 
-      RowBox[{"BalanceSheetHouseholds", " ", "=", " ", 
-       RowBox[{"SortBy", "[", 
-        RowBox[{"BalanceSheetHouseholds", ",", 
-         RowBox[{
-          RowBox[{"#1", "[", 
-           RowBox[{"[", "1", "]"}], "]"}], "&"}]}], "]"}]}], ";", 
-      "\[IndentingNewLine]", 
-      RowBox[{"BalanceSheetFirms", "=", 
-       RowBox[{"SortBy", "[", 
-        RowBox[{"BalanceSheetFirms", ",", " ", 
-         RowBox[{
-          RowBox[{"#", "[", 
-           RowBox[{"[", "1", "]"}], "]"}], " ", "&"}]}], "]"}]}], ";", 
-      "\[IndentingNewLine]", "\[IndentingNewLine]", 
-      RowBox[{"{", 
-       RowBox[{"BalanceSheetHouseholds", ",", "ProductionMatrix"}], "}"}]}]}],
-     "]"}]}], ";"}]], "Input",
- CellChangeTimes->{{3.7183745159825*^9, 3.718374551580193*^9}, {
-   3.718374593836776*^9, 3.718374691027012*^9}, {3.718374729392531*^9, 
-   3.718374731208522*^9}, {3.718374761761531*^9, 3.718374784906139*^9}, {
-   3.718375322560668*^9, 3.718375357149413*^9}, {3.7183753878567133`*^9, 
-   3.718375449560713*^9}, {3.718375605966928*^9, 3.718375627287738*^9}, {
-   3.718375668911075*^9, 3.718375714571542*^9}, {3.718375847602469*^9, 
-   3.7183758553032017`*^9}, {3.7183759931789637`*^9, 3.718376153337967*^9}, {
-   3.718380282502351*^9, 3.718380357837769*^9}, {3.718381027976972*^9, 
-   3.718381092993536*^9}, {3.718542060251136*^9, 3.71854206235155*^9}, {
-   3.718542123622703*^9, 3.7185421875808*^9}, {3.718542274965662*^9, 
-   3.71854228331278*^9}, {3.7185423143209887`*^9, 3.718542392574184*^9}, {
-   3.718550579009246*^9, 3.7185506066290817`*^9}, {3.7185507219556313`*^9, 
-   3.718550804186116*^9}, {3.718550909832465*^9, 3.718550912441387*^9}, {
-   3.7185517325060253`*^9, 3.718551740386958*^9}, {3.718551972235003*^9, 
-   3.718552023413013*^9}, {3.7185520617033*^9, 3.7185520775322247`*^9}, {
-   3.718552374852244*^9, 3.718552405186634*^9}, {3.7185525188336077`*^9, 
-   3.718552555206195*^9}, {3.718552620772233*^9, 3.718552760033828*^9}, {
-   3.7185528921865387`*^9, 3.718552990621867*^9}, {3.718553113090077*^9, 
-   3.718553155965054*^9}, {3.71855330188659*^9, 3.718553349402828*^9}, {
-   3.7185534345896177`*^9, 3.7185536521106367`*^9}, 3.71858395457551*^9, {
-   3.718629769073097*^9, 3.718629769215682*^9}, {3.718644252124196*^9, 
-   3.718644253652528*^9}, {3.718644337371304*^9, 3.718644403906726*^9}, {
-   3.7196146497519627`*^9, 3.7196146529616013`*^9}, {3.719674326219679*^9, 
-   3.719674335292099*^9}, {3.719677539788525*^9, 3.7196776276295958`*^9}, 
-   3.719677727156659*^9, {3.7196780890529203`*^9, 3.719678103971518*^9}, {
-   3.719678618386764*^9, 3.7196786451281023`*^9}, {3.71967870150723*^9, 
-   3.719678737594801*^9}, {3.7196789191582527`*^9, 3.7196789656393642`*^9}, {
-   3.7196790141370783`*^9, 3.719679042384243*^9}, {3.719679135294908*^9, 
-   3.719679151213648*^9}, {3.719680081969729*^9, 3.719680186461173*^9}, {
-   3.7196805779600897`*^9, 3.71968069232023*^9}, {3.719680725562028*^9, 
-   3.719680750595066*^9}, {3.7196823270896063`*^9, 3.719682334237289*^9}, {
-   3.719683970447329*^9, 3.7196841103426743`*^9}, {3.719684169869919*^9, 
-   3.719684296959943*^9}, {3.719685030069563*^9, 3.719685092036818*^9}, {
-   3.719685438327133*^9, 3.719685441245913*^9}, 3.719685563703906*^9, {
-   3.7197034142909317`*^9, 3.719703480455236*^9}, 3.719704437852277*^9, 
-   3.719704559056281*^9, {3.719767836514072*^9, 3.7197678674281178`*^9}, {
-   3.719768183522615*^9, 3.7197681875465393`*^9}, {3.719768374549919*^9, 
-   3.719768374733368*^9}, {3.719769123993286*^9, 3.719769130942251*^9}, {
-   3.71976973814579*^9, 3.7197697841132927`*^9}, {3.719769894562965*^9, 
-   3.719769895761547*^9}, {3.719770012010594*^9, 3.719770158664197*^9}, {
-   3.7197702330891953`*^9, 3.7197702528193493`*^9}, {3.719770770216715*^9, 
-   3.719770774094572*^9}, {3.719771338514491*^9, 3.719771447170513*^9}, {
-   3.7197715290813427`*^9, 3.7197715377909727`*^9}, {3.719771586410627*^9, 
-   3.719771586512452*^9}, {3.7197717230242777`*^9, 3.719771728173908*^9}, {
-   3.719771793609376*^9, 3.719771796262844*^9}, {3.719771843750071*^9, 
-   3.7197718517549*^9}, {3.719837696247856*^9, 3.71983776492225*^9}, {
-   3.719837832166271*^9, 3.7198378869860563`*^9}, {3.719838345667171*^9, 
-   3.7198383616746073`*^9}, {3.719838532348617*^9, 3.7198385960380993`*^9}, {
-   3.7198388389629*^9, 3.7198388453416777`*^9}, {3.719840399529994*^9, 
-   3.7198404025765867`*^9}, {3.719840582606629*^9, 3.7198406010455008`*^9}, 
-   3.72140839058359*^9, {3.721425127558797*^9, 3.721425129812899*^9}, {
-   3.7214253087025337`*^9, 3.721425309221672*^9}, {3.721425409747836*^9, 
-   3.721425415298785*^9}, {3.7215825721881933`*^9, 3.721582587490542*^9}, {
-   3.721582885005868*^9, 3.721582887446788*^9}, {3.72158292560026*^9, 
-   3.721582925959021*^9}, {3.721583059858626*^9, 3.721583150583631*^9}, {
-   3.721583458978386*^9, 3.721583486028133*^9}, {3.721583527086834*^9, 
-   3.7215835318083353`*^9}, 3.721583592148292*^9, {3.7215845579413958`*^9, 
-   3.721584558635109*^9}, {3.721584627975206*^9, 3.721584686215803*^9}, {
-   3.7215873610254383`*^9, 3.721587366544425*^9}, {3.721587522829465*^9, 
-   3.721587523517774*^9}, {3.721587789018567*^9, 3.721587789712257*^9}, {
-   3.72158790910084*^9, 3.721587909827573*^9}, {3.72166529633538*^9, 
-   3.721665436703272*^9}, {3.721666038724015*^9, 3.7216660506924667`*^9}, {
-   3.721667086991542*^9, 3.721667097014264*^9}, {3.721667127814702*^9, 
-   3.721667178086391*^9}, {3.721667261757633*^9, 3.7216674154223957`*^9}, {
-   3.721667479533646*^9, 3.72166752868251*^9}, {3.721667775908257*^9, 
-   3.72166778684142*^9}, {3.721670353144512*^9, 3.721670354977688*^9}, {
-   3.721670584807831*^9, 3.721670633722721*^9}, {3.721670671720603*^9, 
-   3.7216707130949373`*^9}, {3.721670767280883*^9, 3.7216707730611258`*^9}, {
-   3.721670812975032*^9, 3.721670823293168*^9}, {3.7216708774192047`*^9, 
-   3.721670881103674*^9}, {3.72167099832014*^9, 3.721671007294938*^9}, 
-   3.721671077609392*^9, {3.721671113648929*^9, 3.7216711140397787`*^9}, {
-   3.721671642345117*^9, 3.7216716577988377`*^9}, 3.7216727503148317`*^9, {
-   3.721689941104456*^9, 3.721689979647509*^9}}],
+BalanceSheetBanks = ConstantArray[0, {NumBanks, 6}];
+PrintBanks := 
+  Grid[Prepend[
+    BalanceSheetBanks, {"Label", "Cash", "Liabilities", "Equity", 
+     "Expected Capital Inflow", "Capital Ratio"}]];
 
-Cell[BoxData[
- RowBox[{
-  RowBox[{"(*", " ", 
-   RowBox[{"Carry", " ", "out", " ", "Production"}], " ", "*)"}], 
-  "\[IndentingNewLine]", 
-  RowBox[{"FirmsProduce", ":=", " ", 
-   RowBox[{"Do", "[", "\[IndentingNewLine]", 
-    RowBox[{
-     RowBox[{
-      RowBox[{
-       RowBox[{
-        RowBox[{"RevenueMatrix", "[", 
-         RowBox[{"[", "i", "]"}], "]"}], "[", 
-        RowBox[{"[", "1", "]"}], "]"}], " ", "=", " ", "i"}], ";", " ", 
-      RowBox[{"(*", " ", 
-       RowBox[{"Create", " ", "Labels"}], " ", "*)"}], "\[IndentingNewLine]", 
-      
-      RowBox[{
-       RowBox[{
-        RowBox[{"RevenueMatrix", "[", 
-         RowBox[{"[", "i", "]"}], "]"}], "[", 
-        RowBox[{"[", "3", "]"}], "]"}], " ", "=", " ", 
-       RowBox[{"(", 
-        RowBox[{"Floor", "[", 
-         RowBox[{"TechLevel", "*", 
-          RowBox[{"(", 
-           RowBox[{
-            RowBox[{
-             RowBox[{"ProductionMatrix", "[", 
-              RowBox[{"[", "i", "]"}], "]"}], "[", 
-             RowBox[{"[", "3", "]"}], "]"}], "^", "ReturnsCapital"}], ")"}], 
-          "*", 
-          RowBox[{"(", 
-           RowBox[{
-            RowBox[{
-             RowBox[{"ProductionMatrix", "[", 
-              RowBox[{"[", "i", "]"}], "]"}], "[", 
-             RowBox[{"[", "4", "]"}], "]"}], "^", "ReturnsLabor"}], ")"}]}], 
-         "]"}], ")"}]}], ";", "\[IndentingNewLine]", 
-      RowBox[{
-       RowBox[{
-        RowBox[{"RevenueMatrix", "[", 
-         RowBox[{"[", "i", "]"}], "]"}], "[", 
-        RowBox[{"[", "4", "]"}], "]"}], " ", "+=", " ", 
-       RowBox[{
-        RowBox[{"RevenueMatrix", "[", 
-         RowBox[{"[", "i", "]"}], "]"}], "[", 
-        RowBox[{"[", "3", "]"}], "]"}]}], ";"}], "\[IndentingNewLine]", ",", 
-     RowBox[{"{", 
-      RowBox[{"i", ",", "1", ",", "NumFirms"}], "}"}]}], "]"}]}]}]], "Input",
- CellChangeTimes->{{3.718583584993389*^9, 3.718583604787263*^9}, {
-   3.7185837016698847`*^9, 3.718583835131504*^9}, {3.71858396408292*^9, 
-   3.718583984565156*^9}, {3.71858412247762*^9, 3.718584146638505*^9}, 
-   3.718584471030772*^9, {3.718584584613415*^9, 3.71858460426338*^9}, {
-   3.7185847153273973`*^9, 3.7185847819592524`*^9}, {3.7185848221074667`*^9, 
-   3.718584827552746*^9}, {3.7185848854252863`*^9, 3.7185848951452713`*^9}, {
-   3.718585043695677*^9, 3.718585069429428*^9}, 3.718585451795081*^9, 
-   3.7185854888884983`*^9, {3.718585644863866*^9, 3.718585647982396*^9}, {
-   3.71862921576858*^9, 3.718629217616243*^9}, 3.718629457240563*^9, {
-   3.718629491864091*^9, 3.718629494290801*^9}, {3.718629615127817*^9, 
-   3.71862962006496*^9}, 3.7186309093255568`*^9, {3.718631785669031*^9, 
-   3.7186317967088537`*^9}, {3.718631846808401*^9, 3.718631865007606*^9}, {
-   3.7186326130466747`*^9, 3.718632625135173*^9}, {3.71863267507187*^9, 
-   3.718632679016384*^9}, {3.719584542260572*^9, 3.719584555511512*^9}, {
-   3.71958546056073*^9, 3.719585463477339*^9}, {3.7195855138460503`*^9, 
-   3.71958552950834*^9}}],
+BalanceSheetFirms = ConstantArray[0, {NumFirms, 5}];
+PrintFirms := 
+  Grid[Prepend[
+    BalanceSheetFirms, {"Label", "Cash", "Liabilities", "Equity", 
+     "Inventory"}]];
 
-Cell[BoxData[
- RowBox[{
-  RowBox[{"ConsumptionMarket", " ", ":=", " ", 
-   RowBox[{"Module", "[", 
-    RowBox[{
-     RowBox[{"{", 
-      RowBox[{"CashDeposits", ",", "i", ",", "j"}], "}"}], ",", 
-     "\[IndentingNewLine]", "\[IndentingNewLine]", 
-     RowBox[{"(*", " ", 
-      RowBox[{
-       RowBox[{"Calculate", " ", "the", " ", 
-        RowBox[{"Consumer", "'"}], "s", " ", "Budgets"}], " ", "-", " ", 
-       RowBox[{"Households", " ", "deposit", " ", 
-        RowBox[{"(", 
-         RowBox[{"1", "-", "MPC"}], ")"}], " ", "in", " ", "the", " ", 
-        "Bank"}]}], " ", "*)"}], "\[IndentingNewLine]", 
-     RowBox[{
-      RowBox[{"Do", "[", "\[IndentingNewLine]", 
-       RowBox[{
-        RowBox[{
-         RowBox[{
-          RowBox[{
-           RowBox[{"BalanceSheetHouseholds", "[", 
-            RowBox[{"[", "i", "]"}], "]"}], "[", 
-           RowBox[{"[", "3", "]"}], "]"}], " ", "+=", " ", 
-          RowBox[{
-           RowBox[{"(", 
-            RowBox[{"1", "-", "MPC"}], ")"}], "*", 
-           RowBox[{
-            RowBox[{"BalanceSheetHouseholds", "[", 
-             RowBox[{"[", "i", "]"}], "]"}], "[", 
-            RowBox[{"[", "2", "]"}], "]"}]}]}], ";", "\[IndentingNewLine]", 
-         RowBox[{
-          RowBox[{
-           RowBox[{"BalanceSheetHouseholds", "[", 
-            RowBox[{"[", "i", "]"}], "]"}], "[", 
-           RowBox[{"[", "2", "]"}], "]"}], " ", "-=", " ", 
-          RowBox[{
-           RowBox[{"BalanceSheetHouseholds", "[", 
-            RowBox[{"[", "i", "]"}], "]"}], "[", 
-           RowBox[{"[", "3", "]"}], "]"}]}]}], ",", 
-        RowBox[{"{", 
-         RowBox[{"i", ",", "1", ",", "NumHouseholds"}], "}"}]}], "]"}], ";", 
-      "\[IndentingNewLine]", "\[IndentingNewLine]", 
-      RowBox[{"CashDeposits", " ", "=", 
-       RowBox[{
-        RowBox[{"Total", "[", "BalanceSheetHouseholds", "]"}], "[", 
-        RowBox[{"[", "3", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
-      RowBox[{
-       RowBox[{
-        RowBox[{"BalanceSheetBanks", "[", 
-         RowBox[{"[", "1", "]"}], "]"}], "[", 
-        RowBox[{"[", "2", "]"}], "]"}], " ", "+=", " ", "CashDeposits"}], ";", 
-      RowBox[{"(*", " ", 
-       RowBox[{"Increase", " ", 
-        RowBox[{"bank", "'"}], "s", " ", "cash"}], " ", "*)"}], 
-      "\[IndentingNewLine]", 
-      RowBox[{
-       RowBox[{
-        RowBox[{"BalanceSheetBanks", "[", 
-         RowBox[{"[", "1", "]"}], "]"}], "[", 
-        RowBox[{"[", "3", "]"}], "]"}], " ", "+=", " ", "CashDeposits"}], ";",
-       " ", 
-      RowBox[{"(*", " ", 
-       RowBox[{"And", " ", 
-        RowBox[{"bank", "'"}], "s", " ", "liabilities"}], " ", "*)"}], 
-      "\[IndentingNewLine]", "\[IndentingNewLine]", 
-      RowBox[{"(*", " ", 
-       RowBox[{
-       "Compute", " ", "the", " ", "Price", " ", "that", " ", "a", " ", 
-        "Firm", " ", "charges"}], " ", "*)"}], "\[IndentingNewLine]", 
-      RowBox[{"Do", "[", 
-       RowBox[{
-        RowBox[{
-         RowBox[{
-          RowBox[{"RevenueMatrix", "[", 
-           RowBox[{"[", "i", "]"}], "]"}], "[", 
-          RowBox[{"[", "5", "]"}], "]"}], " ", "=", " ", "PriceGood"}], ",", 
-        RowBox[{"{", 
-         RowBox[{"i", ",", "1", ",", "NumFirms"}], "}"}]}], "]"}], ";", 
-      "\[IndentingNewLine]", "\[IndentingNewLine]", 
-      RowBox[{"(*", " ", 
-       RowBox[{
-       "Rank", " ", "firms", " ", "by", " ", "cheapest", " ", "to", " ", 
-        "most", " ", "expensive"}], " ", "*)"}], "\[IndentingNewLine]", 
-      RowBox[{"RevenueMatrix", " ", "=", " ", 
-       RowBox[{"SortBy", "[", 
-        RowBox[{"RevenueMatrix", ",", 
-         RowBox[{
-          RowBox[{"#1", "[", 
-           RowBox[{"[", "5", "]"}], "]"}], "&"}]}], "]"}]}], ";", 
-      "\[IndentingNewLine]", "\[IndentingNewLine]", 
-      RowBox[{"i", "=", "1"}], ";", "\[IndentingNewLine]", 
-      RowBox[{"j", "=", "1"}], ";", "\[IndentingNewLine]", 
-      RowBox[{"While", "[", 
-       RowBox[{
-        RowBox[{"i", " ", "<", "NumHouseholds"}], ",", "\[IndentingNewLine]", 
-        "\[IndentingNewLine]", 
-        RowBox[{
-         RowBox[{"If", "[", 
-          RowBox[{
-           RowBox[{
-            RowBox[{"(", 
-             RowBox[{
-              RowBox[{
-               RowBox[{"BalanceSheetHouseholds", "[", 
-                RowBox[{"[", "i", "]"}], "]"}], "[", 
-               RowBox[{"[", "2", "]"}], "]"}], " ", "\[GreaterEqual]", " ", 
-              RowBox[{
-               RowBox[{"RevenueMatrix", "[", 
-                RowBox[{"[", "j", "]"}], "]"}], "[", 
-               RowBox[{"[", "5", "]"}], "]"}]}], ")"}], "&&", 
-            RowBox[{"(", 
-             RowBox[{
-              RowBox[{
-               RowBox[{"RevenueMatrix", "[", 
-                RowBox[{"[", "j", "]"}], "]"}], "[", 
-               RowBox[{"[", "4", "]"}], "]"}], ">", " ", "0"}], ")"}]}], ",", 
-           " ", 
-           RowBox[{"(*", " ", 
-            RowBox[{
-             RowBox[{
-              RowBox[{
-               RowBox[{"If", " ", "Cash", " ", "on", " ", "Hand"}], " ", ">", 
-               " ", 
-               RowBox[{"Price", " ", "of", " ", "the", " ", "Good"}]}], " ", 
-              "&"}], " ", "Inventories", " ", "are", " ", "greater", " ", 
-             "than", " ", "zero"}], " ", "*)"}], "\[IndentingNewLine]", 
-           "\[IndentingNewLine]", 
-           RowBox[{"{", 
-            RowBox[{
-             RowBox[{
-              RowBox[{
-               RowBox[{"BalanceSheetHouseholds", "[", 
-                RowBox[{"[", "i", "]"}], "]"}], "[", 
-               RowBox[{"[", "2", "]"}], "]"}], "-=", " ", 
-              RowBox[{
-               RowBox[{"RevenueMatrix", "[", 
-                RowBox[{"[", "j", "]"}], "]"}], "[", 
-               RowBox[{"[", "5", "]"}], "]"}]}], ",", " ", 
-             RowBox[{"(*", " ", 
-              RowBox[{"Subtract", " ", "cash", " ", "to", " ", "household"}], 
-              " ", "*)"}], "\[IndentingNewLine]", 
-             RowBox[{
-              RowBox[{
-               RowBox[{"RevenueMatrix", "[", 
-                RowBox[{"[", "j", "]"}], "]"}], "[", 
-               RowBox[{"[", "2", "]"}], "]"}], " ", "+=", 
-              RowBox[{
-               RowBox[{"RevenueMatrix", "[", 
-                RowBox[{"[", "j", "]"}], "]"}], "[", 
-               RowBox[{"[", "5", "]"}], "]"}]}], " ", ",", 
-             RowBox[{"(*", " ", 
-              RowBox[{"Add", " ", "cash", " ", "to", " ", "firm"}], " ", 
-              "*)"}], "\[IndentingNewLine]", 
-             RowBox[{
-              RowBox[{
-               RowBox[{"RevenueMatrix", "[", 
-                RowBox[{"[", "j", "]"}], "]"}], "[", 
-               RowBox[{"[", "4", "]"}], "]"}], "-=", " ", "1"}]}], "}"}]}], 
-          "]"}], ";", "\[IndentingNewLine]", "\[IndentingNewLine]", 
-         RowBox[{"(*", " ", 
-          RowBox[{
-           RowBox[{"If", " ", 
-            RowBox[{"firm", "'"}], "s", " ", "inventory", " ", "equals", " ", 
-            "zero"}], ",", " ", 
-           RowBox[{"go", " ", "to", " ", "next", " ", "firm"}]}], " ", "*)"}],
-          "\[IndentingNewLine]", 
-         RowBox[{"If", "[", 
-          RowBox[{
-           RowBox[{
-            RowBox[{
-             RowBox[{"RevenueMatrix", "[", 
-              RowBox[{"[", "j", "]"}], "]"}], "[", 
-             RowBox[{"[", "4", "]"}], "]"}], "\[Equal]", "0"}], ",", 
-           "\[IndentingNewLine]", 
-           RowBox[{"j", "+=", "1"}]}], "]"}], ";", "\[IndentingNewLine]", 
-         "\[IndentingNewLine]", 
-         RowBox[{"(*", " ", 
-          RowBox[{
-           RowBox[{"If", " ", "house", " ", 
-            RowBox[{"can", "'"}], "t", " ", "afford", " ", "to", " ", "buy", 
-            " ", "more"}], ",", " ", 
-           RowBox[{"go", " ", "to", " ", "next", " ", "house"}]}], " ", 
-          "*)"}], "\[IndentingNewLine]", 
-         RowBox[{"If", "[", 
-          RowBox[{
-           RowBox[{
-            RowBox[{
-             RowBox[{"BalanceSheetHouseholds", "[", 
-              RowBox[{"[", "i", "]"}], "]"}], "[", 
-             RowBox[{"[", "2", "]"}], "]"}], " ", "<", " ", 
-            RowBox[{
-             RowBox[{"RevenueMatrix", "[", 
-              RowBox[{"[", "j", "]"}], "]"}], "[", 
-             RowBox[{"[", "5", "]"}], "]"}]}], ",", "\[IndentingNewLine]", 
-           RowBox[{
-            RowBox[{"j", "=", "1"}], ";", "\[IndentingNewLine]", 
-            RowBox[{"i", "+=", "1"}], ";"}]}], "]"}], ";"}]}], 
-       "\[IndentingNewLine]", "\[IndentingNewLine]", "]"}], ";", 
-      "\[IndentingNewLine]", "\[IndentingNewLine]", 
-      RowBox[{"(*", " ", 
-       RowBox[{"Resort", " ", "Firms", " ", "by", " ", "Label"}], " ", "*)"}],
-       "\[IndentingNewLine]", 
-      RowBox[{"RevenueMatrix", "=", 
-       RowBox[{"SortBy", "[", 
-        RowBox[{"RevenueMatrix", ",", 
-         RowBox[{
-          RowBox[{"#1", "[", 
-           RowBox[{"[", "1", "]"}], "]"}], "&"}]}], "]"}]}], ";", 
-      "\[IndentingNewLine]", "\[IndentingNewLine]", 
-      RowBox[{"{", 
-       RowBox[{"BalanceSheetHouseholds", ",", "RevenueMatrix"}], "}"}]}]}], 
-    "]"}]}], ";"}]], "Input",
- CellChangeTimes->{{3.718629744266913*^9, 3.7186297988327723`*^9}, {
-   3.718630291920952*^9, 3.718630351419235*^9}, {3.718630476690187*^9, 
-   3.718630486943981*^9}, {3.7186306144751997`*^9, 3.71863061580357*^9}, 
-   3.718630775800098*^9, {3.718630867667532*^9, 3.7186309035485907`*^9}, {
-   3.718631140511936*^9, 3.7186311760279284`*^9}, {3.718631364866543*^9, 
-   3.718631404674445*^9}, {3.718631499009592*^9, 3.7186315360539837`*^9}, {
-   3.7186315866640778`*^9, 3.718631603193583*^9}, {3.718631740161047*^9, 
-   3.718631742919567*^9}, {3.718631809853241*^9, 3.7186318398164673`*^9}, {
-   3.718631974360861*^9, 3.7186320296166162`*^9}, {3.718632221599736*^9, 
-   3.7186322829687977`*^9}, {3.718632558579522*^9, 3.718632606599419*^9}, {
-   3.718632656816593*^9, 3.7186326714565573`*^9}, {3.718632729472816*^9, 
-   3.718632870247891*^9}, {3.718632902171369*^9, 3.718632912532522*^9}, {
-   3.71863294355315*^9, 3.71863294527847*^9}, {3.718633033446438*^9, 
-   3.718633090734206*^9}, {3.7186402829409637`*^9, 3.7186403235270367`*^9}, {
-   3.718640416730957*^9, 3.718640422178801*^9}, {3.71864048809569*^9, 
-   3.718640502630679*^9}, {3.7186413252802753`*^9, 3.7186413594484453`*^9}, {
-   3.7186415084109707`*^9, 3.718641542684114*^9}, {3.718641888023819*^9, 
-   3.7186418933992357`*^9}, {3.718644749156077*^9, 3.718644766044557*^9}, {
-   3.718644817753459*^9, 3.718644824055146*^9}, {3.718644896652851*^9, 
-   3.718644901996086*^9}, {3.718644944806971*^9, 3.718645051880134*^9}, {
-   3.7187297827877083`*^9, 3.7187300123929243`*^9}, 3.71873041970708*^9, {
-   3.718730547096277*^9, 3.7187305471660347`*^9}, {3.7187306684734287`*^9, 
-   3.71873075861841*^9}, {3.7187308663807707`*^9, 3.7187310322119427`*^9}, {
-   3.718731169243579*^9, 3.7187312005474777`*^9}, {3.718731248529208*^9, 
-   3.71873133684862*^9}, {3.7187314169886637`*^9, 3.718731418817745*^9}, {
-   3.718799258952239*^9, 3.71879928234068*^9}, {3.718799528808938*^9, 
-   3.718799533775622*^9}, {3.718802803147366*^9, 3.718803080960267*^9}, {
-   3.7188031993546667`*^9, 3.718803260681114*^9}, {3.718803310990778*^9, 
-   3.7188033337092752`*^9}, {3.7188035262885637`*^9, 3.71880354064003*^9}, {
-   3.7188045365177593`*^9, 3.718804564781309*^9}, {3.718804773498138*^9, 
-   3.718804807281608*^9}, {3.718804975903319*^9, 3.718804989407805*^9}, {
-   3.7188055388312397`*^9, 3.718805578837245*^9}, {3.718805709639289*^9, 
-   3.718805737971498*^9}, 3.718805777817301*^9, {3.718805829667045*^9, 
-   3.718805866316473*^9}, {3.7188063847877693`*^9, 3.7188064931637363`*^9}, {
-   3.718806659288864*^9, 3.718806669191657*^9}, {3.718806734763096*^9, 
-   3.7188067721513*^9}, {3.718807033788859*^9, 3.718807042363447*^9}, {
-   3.718807126407378*^9, 3.718807126948585*^9}, {3.718807374371776*^9, 
-   3.718807376656829*^9}, {3.718807446403985*^9, 3.718807455980578*^9}, {
-   3.718807667257968*^9, 3.7188076672797213`*^9}, {3.718807717301649*^9, 
-   3.718807734316523*^9}, {3.719163239451449*^9, 3.7191632505349197`*^9}, {
-   3.719576471925076*^9, 3.719576513894698*^9}, {3.719576551094735*^9, 
-   3.719576657187949*^9}, {3.71957670146242*^9, 3.719576758909411*^9}, {
-   3.71957679349942*^9, 3.7195768021859827`*^9}, {3.719576953122645*^9, 
-   3.719576954664222*^9}, {3.7195769921422987`*^9, 3.719576994336247*^9}, {
-   3.719577095531972*^9, 3.719577136973569*^9}, {3.7195772102419777`*^9, 
-   3.71957736663197*^9}, {3.719670270270998*^9, 3.719670307164649*^9}, 
-   3.7196703463459053`*^9, {3.7196716516879683`*^9, 3.7196716524749947`*^9}, {
-   3.719674459172864*^9, 3.7196744592353086`*^9}, 3.719674534088146*^9, 
-   3.719685432262557*^9, {3.7198386102871933`*^9, 3.719838637261484*^9}, {
-   3.7198455445032997`*^9, 3.719845550982329*^9}, {3.7214027574499826`*^9, 
-   3.72140275826507*^9}, {3.721424182081319*^9, 3.721424185265491*^9}, {
-   3.7215831702182503`*^9, 3.72158317133628*^9}}],
+BalanceSheetHouseholds = ConstantArray[0, {NumHouseholds, 8}];
+PrintHouseholds := 
+  Grid[Prepend[
+    BalanceSheetHouseholds, {"Label", "Cash (Liquid)", 
+     "Cash (Deposits)", "Equity", "Net Wealth", "Reservation Wage", 
+     "Employed", "Cumulative Employment"}]];
 
-Cell[BoxData[
- RowBox[{
-  RowBox[{"Bookkeeping", ":=", 
-   RowBox[{"Module", "[", 
-    RowBox[{
-     RowBox[{"{", 
-      RowBox[{"RevenueSummary", ",", "Employment"}], "}"}], ",", 
-     "\[IndentingNewLine]", "\[IndentingNewLine]", 
-     RowBox[{"(*", " ", 
-      RowBox[{"Push", " ", 
-       RowBox[{"Firm", "'"}], "s", " ", "Cash", " ", "and", " ", "Inventory", 
-       " ", "to", " ", "their", " ", "Balance", " ", "Sheet", " ", "for", " ",
-        "the", " ", "next", " ", "period"}], " ", "*)"}], 
-     "\[IndentingNewLine]", 
-     RowBox[{
-      RowBox[{"Do", "[", "\[IndentingNewLine]", 
-       RowBox[{
-        RowBox[{
-         RowBox[{
-          RowBox[{
-           RowBox[{"BalanceSheetFirms", "[", 
-            RowBox[{"[", "i", "]"}], "]"}], "[", 
-           RowBox[{"[", "2", "]"}], "]"}], " ", "+=", " ", 
-          RowBox[{
-           RowBox[{"RevenueMatrix", "[", 
-            RowBox[{"[", "i", "]"}], "]"}], "[", 
-           RowBox[{"[", "2", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
-         RowBox[{
-          RowBox[{
-           RowBox[{"BalanceSheetFirms", "[", 
-            RowBox[{"[", "i", "]"}], "]"}], "[", 
-           RowBox[{"[", "5", "]"}], "]"}], " ", "+=", " ", 
-          RowBox[{
-           RowBox[{"RevenueMatrix", "[", 
-            RowBox[{"[", "i", "]"}], "]"}], "[", 
-           RowBox[{"[", "4", "]"}], "]"}]}], ";"}], ",", 
-        "\[IndentingNewLine]", 
-        RowBox[{"{", 
-         RowBox[{"i", ",", "1", ",", "NumFirms"}], "}"}]}], "]"}], ";", "\n", 
-      "\[IndentingNewLine]", 
-      RowBox[{"RevenueSummary", " ", "=", " ", 
-       RowBox[{"Total", "[", "RevenueMatrix", "]"}]}], ";", 
-      "\[IndentingNewLine]", 
-      RowBox[{"Employment", " ", "=", " ", 
-       RowBox[{
-        RowBox[{"Total", "[", "ProductionMatrix", "]"}], "[", 
-        RowBox[{"[", "4", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
-      "\[IndentingNewLine]", 
-      RowBox[{"(*", " ", 
-       RowBox[{
-        RowBox[{"Calculate", " ", "output"}], ",", " ", 
-        RowBox[{"nominal", " ", "gdp"}], ",", " ", "inventories", ",", " ", 
-        RowBox[{
-        "and", " ", "consumption", " ", "summed", " ", "across", " ", "all", 
-         " ", "firms"}]}], " ", "*)"}], "\[IndentingNewLine]", 
-      RowBox[{
-       RowBox[{
-        RowBox[{"ModelOutputMatrix", "[", 
-         RowBox[{"[", "CurrentPeriod", "]"}], "]"}], "[", 
-        RowBox[{"[", "1", "]"}], "]"}], " ", "=", " ", "CurrentPeriod"}], ";",
-       "\[IndentingNewLine]", 
-      RowBox[{
-       RowBox[{
-        RowBox[{"ModelOutputMatrix", "[", 
-         RowBox[{"[", "CurrentPeriod", "]"}], "]"}], "[", 
-        RowBox[{"[", "2", "]"}], "]"}], "  ", "=", " ", 
-       RowBox[{"RevenueSummary", "[", 
-        RowBox[{"[", "3", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
-      RowBox[{
-       RowBox[{
-        RowBox[{"ModelOutputMatrix", "[", 
-         RowBox[{"[", "CurrentPeriod", "]"}], "]"}], "[", 
-        RowBox[{"[", "3", "]"}], "]"}], "  ", "=", " ", 
-       RowBox[{
-        RowBox[{"RevenueSummary", "[", 
-         RowBox[{"[", "3", "]"}], "]"}], "*", "PriceGood"}]}], ";", 
-      "\[IndentingNewLine]", 
-      RowBox[{
-       RowBox[{
-        RowBox[{"ModelOutputMatrix", "[", 
-         RowBox[{"[", "CurrentPeriod", "]"}], "]"}], "[", 
-        RowBox[{"[", "4", "]"}], "]"}], "  ", "=", " ", 
-       RowBox[{"RevenueSummary", "[", 
-        RowBox[{"[", "4", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
-      RowBox[{
-       RowBox[{
-        RowBox[{"ModelOutputMatrix", "[", 
-         RowBox[{"[", "CurrentPeriod", "]"}], "]"}], "[", 
-        RowBox[{"[", "5", "]"}], "]"}], "  ", "=", " ", 
-       RowBox[{
-        RowBox[{
-         RowBox[{"ModelOutputMatrix", "[", 
-          RowBox[{"[", "CurrentPeriod", "]"}], "]"}], "[", 
-         RowBox[{"[", "2", "]"}], "]"}], "-", " ", 
-        RowBox[{
-         RowBox[{"ModelOutputMatrix", "[", 
-          RowBox[{"[", "CurrentPeriod", "]"}], "]"}], "[", 
-         RowBox[{"[", "4", "]"}], "]"}]}]}], ";", "\[IndentingNewLine]", 
-      RowBox[{
-       RowBox[{
-        RowBox[{"ModelOutputMatrix", "[", 
-         RowBox[{"[", "CurrentPeriod", "]"}], "]"}], "[", 
-        RowBox[{"[", "6", "]"}], "]"}], " ", "=", " ", "Employment"}], ";", 
-      "\[IndentingNewLine]", 
-      RowBox[{
-       RowBox[{
-        RowBox[{"ModelOutputMatrix", "[", 
-         RowBox[{"[", "CurrentPeriod", "]"}], "]"}], "[", 
-        RowBox[{"[", "7", "]"}], "]"}], " ", "=", " ", 
-       RowBox[{"N", "[", 
-        RowBox[{
-         RowBox[{"(", 
-          RowBox[{"NumHouseholds", "-", "Employment"}], ")"}], "/", 
-         "NumHouseholds"}], "]"}]}], ";", "\[IndentingNewLine]", 
-      "\[IndentingNewLine]", 
-      RowBox[{"(*", " ", 
-       RowBox[{
-        RowBox[{"Reset", " ", "per"}], "-", 
-        RowBox[{"period", " ", "matrices"}]}], " ", "*)"}], 
-      "\[IndentingNewLine]", 
-      RowBox[{"ProductionMatrix", " ", "=", " ", 
-       RowBox[{"ConstantArray", "[", 
-        RowBox[{"0", ",", 
-         RowBox[{"{", 
-          RowBox[{"NumFirms", ",", "12"}], "}"}]}], "]"}]}], ";", 
-      "\[IndentingNewLine]", 
-      RowBox[{"RevenueMatrix", " ", "=", " ", 
-       RowBox[{"ConstantArray", "[", 
-        RowBox[{"0", ",", 
-         RowBox[{"{", 
-          RowBox[{"NumFirms", ",", "5"}], "}"}]}], "]"}]}], ";", 
-      "\[IndentingNewLine]", "\[IndentingNewLine]", 
-      RowBox[{"(*", " ", 
-       RowBox[{"Reset", " ", "employment", " ", "status"}], " ", "*)"}], 
-      "\[IndentingNewLine]", 
-      RowBox[{
-       RowBox[{"Do", "[", 
-        RowBox[{
-         RowBox[{
-          RowBox[{
-           RowBox[{"BalanceSheetHouseholds", "[", 
-            RowBox[{"[", "i", "]"}], "]"}], "[", 
-           RowBox[{"[", "7", "]"}], "]"}], "=", "0"}], ",", 
-         RowBox[{"{", 
-          RowBox[{"i", ",", "1", ",", "NumHouseholds"}], "}"}]}], "]"}], 
-       "\[IndentingNewLine]", "\[IndentingNewLine]", 
-       RowBox[{"{", 
-        RowBox[{"BalanceSheetFirms", ",", "ModelOutputMatrix"}], "}"}]}]}]}], 
-    "]"}]}], ";"}]], "Input",
- CellChangeTimes->CompressedData["
-1:eJxTTMoPSmViYGCQBGIQPaNy/9b2ba8d3wk+2Q6il4REi3UAaf27Daog2uBq
-pyaIVrBYbA+izU6nuYHoH1kswSDaJeZbGIguCnANB8vfTm4G0Wof08H01VtT
-GruB9IawsjYQvducaSqIbriXCqZljtQdB9G3Tiw4DaL9hZ1mbQHS+0rT54No
-I+kJm0B0aNXp7SB61xPXPSB6RdyWAyD6RsH5oyA6x1X+GIi+qPT2LIjeNmH+
-ORDNV371KojmXhF/DUSz/3a9A6Kdrf7cBdEVc6a8B9GC9R/AtEdFzsutQHpN
-Sz6Ylqpd1rkTSPcG5XaDaKaeggkgmmvdgYkgWtaaaQHX9teO05bnLATRDROX
-XgTRD5dvvQSi93HM12fe9drx1be1YLqAbY8KH5B+dqpNFURzyKq4RwNp4R4L
-MA0AIO7gEg==
-  "]],
+(* Create Labels for the Balance Sheets *)
+Do[
+ BalanceSheetBanks[[i]][[1]] = i, {i, 1, NumBanks}]
+Do[BalanceSheetFirms[[i]][[1]] = i, {i, 1, NumFirms}]
+Do[BalanceSheetHouseholds[[i]][[1]] = i, {i, 1, NumHouseholds}]
 
-Cell[BoxData[
- RowBox[{
-  RowBox[{"(*", " ", 
-   RowBox[{"Run", " ", "the", " ", "Economy"}], " ", "*)"}], 
-  "\[IndentingNewLine]", 
-  RowBox[{"(*", 
-   RowBox[{
-    RowBox[{"CurrentPeriod", " ", "=", " ", "1"}], ";", "\[IndentingNewLine]",
-     "ProductionAllocation", ";", "\[IndentingNewLine]", "PurchaseCapital", 
-    ";", "\[IndentingNewLine]", "LaborSearch", ";", "\[IndentingNewLine]", 
-    "FirmsProduce", ";", "\[IndentingNewLine]", "ConsumptionMarket", ";"}], 
-   "*)"}]}]], "Input",
- CellChangeTimes->{{3.7185848018755817`*^9, 3.7185848126571827`*^9}, {
-   3.718584860593587*^9, 3.718584861155942*^9}, {3.718585538681419*^9, 
-   3.718585605256465*^9}, {3.718585667651392*^9, 3.7185856720430403`*^9}, {
-   3.718629469557502*^9, 3.718629483364459*^9}, {3.7186405809889936`*^9, 
-   3.71864061243532*^9}, {3.718641179524047*^9, 3.718641201251574*^9}, {
-   3.718641866868531*^9, 3.718641915887043*^9}, {3.718643022340992*^9, 
-   3.718643026542817*^9}, 3.719576978405661*^9, {3.719577728166718*^9, 
-   3.71957773009429*^9}, {3.719578269951619*^9, 3.719578280469755*^9}, {
-   3.7195786170966377`*^9, 3.719578619878428*^9}, {3.719578723502593*^9, 
-   3.719578780062972*^9}, 3.719578835609192*^9, {3.719578991876474*^9, 
-   3.719578992642108*^9}, {3.719584871684688*^9, 3.7195849145303507`*^9}, {
-   3.7195850636472063`*^9, 3.719585081239195*^9}, {3.719585115300014*^9, 
-   3.7195851825874043`*^9}, {3.719585248368437*^9, 3.719585248455879*^9}, {
-   3.7195859188121853`*^9, 3.719585918889965*^9}, {3.719586034195787*^9, 
-   3.719586036864546*^9}, 3.719612467582912*^9, {3.719612607544738*^9, 
-   3.719612607663883*^9}, {3.719614702845108*^9, 3.7196147035581408`*^9}, {
-   3.719614929390971*^9, 3.719614932468099*^9}, 3.7196152899363422`*^9, {
-   3.719670841363257*^9, 3.7196708745970783`*^9}, {3.7196756425392637`*^9, 
-   3.7196756426656847`*^9}, {3.719675946138421*^9, 3.719675965736115*^9}, {
-   3.719680273962471*^9, 3.719680281347288*^9}, {3.7196803319839907`*^9, 
-   3.719680356984213*^9}, 3.719680517120235*^9, {3.719682944956358*^9, 
-   3.719682962165575*^9}, {3.7196830075003977`*^9, 3.719683008291798*^9}, {
-   3.7196832623059072`*^9, 3.7196832720151997`*^9}, 3.719684320547161*^9, {
-   3.719767955340026*^9, 3.7197679956819487`*^9}, {3.7197680502072353`*^9, 
-   3.719768060839348*^9}, {3.7197682129368067`*^9, 3.719768213016266*^9}, {
-   3.719768245684413*^9, 3.719768245730529*^9}, {3.719768381453265*^9, 
-   3.719768381506054*^9}, {3.7197684145395803`*^9, 3.719768478865584*^9}, {
-   3.7197691621500187`*^9, 3.719769162228129*^9}, {3.719769401494913*^9, 
-   3.719769401902172*^9}, {3.719769583141767*^9, 3.7197695983239*^9}, {
-   3.719769804415783*^9, 3.719769804454611*^9}, 3.719769871262093*^9, {
-   3.719769902712351*^9, 3.7197699027985277`*^9}, {3.7197699962451553`*^9, 
-   3.719769996306533*^9}, {3.719770163861899*^9, 3.719770185520917*^9}, {
-   3.719770259388714*^9, 3.719770259466729*^9}, {3.719771480569953*^9, 
-   3.719771481256343*^9}, {3.719771627703497*^9, 3.7197716281975393`*^9}, {
-   3.7197717510701838`*^9, 3.719771751730785*^9}, {3.719771782493022*^9, 
-   3.7197717831148853`*^9}, {3.719837801722649*^9, 3.719837801880962*^9}, 
-   3.719837849052692*^9, {3.719838405031625*^9, 3.719838405157456*^9}, {
-   3.719838643517294*^9, 3.71983864360299*^9}, {3.719838693485632*^9, 
-   3.7198386940834417`*^9}, {3.71983874800704*^9, 3.719838768635192*^9}}],
+(* Create array for production *)
 
-Cell[BoxData[
- RowBox[{"(*", 
-  RowBox[{"Bookkeeping", ";"}], "*)"}]], "Input",
- CellChangeTimes->{{3.7197695919736*^9, 3.719769595267911*^9}, {
-   3.7197699921155863`*^9, 3.719769993858879*^9}, 3.719771622465498*^9, {
-   3.719771739548074*^9, 3.7197717431624002`*^9}, 3.719838760414833*^9}],
+ProductionMatrix = ConstantArray[0, {NumFirms, 12}];
+PrintProduction := 
+  Grid[Prepend[
+    ProductionMatrix, {"Label", "Cash", "Current Capital", 
+     "Current Labor", "Capital Target", "Labor Target", 
+     "Revenue Target", "Cost Capital", "Cost Labor", "Profit", 
+     "Rental Rate", "Salary"}]];
 
-Cell[BoxData[
- RowBox[{"(*", 
-  RowBox[{
-  "PrintBanks", "\[IndentingNewLine]", "PrintFirms", "\[IndentingNewLine]", 
-   "PrintRevenue", "\[IndentingNewLine]", "PrintProduction", 
-   "\[IndentingNewLine]", "PrintModelOutput", "\[IndentingNewLine]", 
-   "PrintHouseholds"}], "*)"}]], "Input",
- CellChangeTimes->{3.719615285468631*^9, 3.719670861155211*^9, 
-  3.719675929110269*^9, 3.719680285762088*^9, 3.719680523397649*^9, 
-  3.719682950936082*^9, 3.719684325606114*^9, 3.7197679507228193`*^9, 
-  3.7198387541885147`*^9}],
+(* Set firm's initial cash in the Production Matrix *)
 
-Cell[BoxData[
- RowBox[{
-  RowBox[{"Do", "[", "\[IndentingNewLine]", 
-   RowBox[{
-    RowBox[{
-     RowBox[{"CurrentPeriod", "=", "k"}], ";", "\[IndentingNewLine]", 
-     "ProductionAllocation", ";", "\[IndentingNewLine]", "PurchaseCapital", 
-     ";", "\[IndentingNewLine]", "LaborSearch", ";", "\[IndentingNewLine]", 
-     "FirmsProduce", ";", "\[IndentingNewLine]", "ConsumptionMarket", ";", 
-     "\[IndentingNewLine]", "Bookkeeping", ";"}], ",", "\[IndentingNewLine]", 
+Do[BalanceSheetFirms[[i]][[2]] = Cash, {i, 1, NumFirms}];
+
+(* Define functions for Cobb-Douglas production function *)
+
+CostLabor[Labor_] := PriceLabor*Labor;
+CostCapital[Capital_] := PriceCapital*Capital;
+Revenue[Capital_, Labor_] := 
+  TechLevel*PriceGood*(Capital^ReturnsCapital)*(Labor^ReturnsLabor);
+
+Profits[Capital_, Labor_] := 
+  Revenue[Capital, Labor] - CostCapital[Capital] - CostLabor[Labor];
+
+(* Create an array to hold the Revenue from the Firm's sale of goods *)
+
+RevenueMatrix = ConstantArray[0, {NumFirms, 5}];
+PrintRevenue := 
+  Grid[Prepend[
+    RevenueMatrix, {"Label", "Cash", "Output", "Inventory", "Price"}]];
+
+(* Create an array to hold the macroeconomic statistics *)
+
+ModelOutputMatrix = ConstantArray[0, {NumPeriods, 7}];
+PrintModelOutput := 
+  Grid[Prepend[
+    ModelOutputMatrix, {"Period", "Output", "Nominal GDP", 
+     "Global Inventory", "Consumption", "Employment", 
+     "Unemployment Rate"}]];
+
+(* ECONOMIC PROCESSES *)
+
+ProductionAllocation := Module[{OptimizationMatrix},
+   
+   (* Create labels *)
+   
+   Do[ProductionMatrix[[i]][[1]] = i, {i, 1, NumFirms}];
+   
+   (* Add the firm's cash to the production matrix *)
+   
+   Do[ProductionMatrix[[i]][[2]] = BalanceSheetFirms[[i]][[2]], {i, 1,
+      NumFirms}];
+   
+   (* Solve CB optimization *)
+   
+   OptimizationMatrix = ConstantArray[0, NumFirms];
+   Do[OptimizationMatrix[[i]] = 
+     Maximize[{Profits[K, L], K >= 0, L >= 0, 
+       CostCapital[K] + CostLabor[L] <= 
+        ProductionMatrix[[i]][[2]]}, {K, L}], {i, 1, NumFirms}];
+   
+   (* Set initial capital, initial labor, capital target, 
+   labor target *)
+   Do[{
+     ProductionMatrix[[i]][[3]] = InitialCapital;
+     ProductionMatrix[[i]][[4]] = InitialLabor;
+     ProductionMatrix[[i]][[5]] = 
+      Floor[Last[Flatten[OptimizationMatrix[[i]]][[2]]]];
+     ProductionMatrix[[i]][[6]] = 
+      Floor[Last[Flatten[OptimizationMatrix[[i]]][[3]]]]; 
+     }, {i, 1, NumFirms}];
+   
+   (* Calculate revenue, costs, profits*)
+   Do[{
+     ProductionMatrix[[i]][[7]] = 
+      Revenue[ProductionMatrix[[i]][[5]], 
+       ProductionMatrix[[i]][[6]]];
+     ProductionMatrix[[i]][[8]] = 
+      CostCapital[ProductionMatrix[[i]][[5]]];
+     ProductionMatrix[[i]][[9]] = 
+      CostLabor[ProductionMatrix[[i]][[6]]];
+     ProductionMatrix[[i]][[10]] = 
+      ProductionMatrix[[i]][[7]] - ProductionMatrix[[i]][[8]] - 
+       ProductionMatrix[[i]][[9]];
+     }, {i, 1, NumFirms}];
+   
+   (* Calculate rental rate of capital and salary offers *)
+   Do[{
+     ProductionMatrix[[i]][[11]] = 
+      If[ ProductionMatrix[[i]][[5]] == 0, 0, 
+       ProductionMatrix[[i]][[8]]/ProductionMatrix[[i]][[5]]];
+     ProductionMatrix[[i]][[12]] = 
+      If[ProductionMatrix[[i]][[6]] == 0, 0, 
+       ProductionMatrix[[i]][[9]]/ProductionMatrix[[i]][[6]]];
+     }, {i, 1, NumFirms}];
+   
+   {ProductionMatrix}];
+
+PurchaseCapital := Do[
+   {ProductionMatrix[[i]][[3]] = ProductionMatrix[[i]][[5]],
+    BalanceSheetFirms[[i]][[2]] -= ProductionMatrix[[i]][[8]]}
+   , {i, 1, NumFirms}];
+
+LaborSearch := 
+  Module[{EmploymentLevel, FirmOrdering, TempFirmBalanceSheet, 
+    FirmLookup, i, j},
+   
+   (* Calculate reservation wages *)
+   Do[
+    BalanceSheetHouseholds[[i]][[6]] = PriceLabor;
     
-    RowBox[{"{", 
-     RowBox[{"k", ",", "1", ",", "NumPeriods"}], "}"}]}], "]"}], 
-  ";"}]], "Input",
- CellChangeTimes->{{3.719614996958913*^9, 3.7196150122478247`*^9}, {
-   3.719615207724676*^9, 3.7196152503406982`*^9}, {3.719615357485282*^9, 
-   3.7196153589130373`*^9}, 3.7196829416776533`*^9, 3.719684340242147*^9, 
-   3.719767961191832*^9, {3.719838780660274*^9, 3.719838782933826*^9}, {
-   3.721401532342826*^9, 3.7214015382494793`*^9}, {3.721401659644986*^9, 
-   3.721401662544051*^9}, {3.721583610674404*^9, 3.721583611064343*^9}}],
+    (* If unemployed for more periods than the delay, 
+    then adjust the reservation wage down by a dollar *)
+    
+    If[BalanceSheetHouseholds[[i]][[8]] <= - WageAdjustmentDelay, 
+     BalanceSheetHouseholds[[i]][[6]] -= -1];
+    
+    (* If employed for more periods than the delay, 
+    then adjust the reservation wage up by a dollar *)
+    
+    If[BalanceSheetHouseholds[[i]][[8]] >= WageAdjustmentDelay, 
+     BalanceSheetHouseholds[[i]][[6]] += 1];
+    
+    , {i, 1, NumHouseholds}];
+   
+   (* Calculate the number of open positions and instantiate a matrix \
+to represent those jobs *)
+   
+   EmploymentLevel = 
+    Min[Sum[ProductionMatrix[[i]][[6]], {i, 1, NumFirms}], 
+     NumHouseholds];
+   
+   (* Sort firm's salary offers and household reservation wages: 
+   low to high *)
+   
+   ProductionMatrix = SortBy[ProductionMatrix, #[[12]] &];
+   BalanceSheetHouseholds = SortBy[BalanceSheetHouseholds, #[[6]] &];
+   
+   (* Ordering the firms is a little more tricky *)
+   
+   FirmOrdering = ConstantArray[0, NumFirms]; (* Create array *)
+   
+   Do[FirmOrdering[[i]] = ProductionMatrix[[i]][[1]], {i, 1, 
+     NumFirms}]; (* Populate array *)
+   
+   TempFirmBalanceSheet = ConstantArray[0, NumFirms];
+   (* Match the ordering of the firms in the balance sheet with the \
+ordering of the firms in the production matrix *)
+   
+   For[i = 1, i <= NumFirms, i++,
+    FirmLookup = FirmOrdering[[i]];
+    For[j = 1, j <= NumFirms, j++,
+     If[BalanceSheetFirms[[j]][[1]] == FirmLookup,
+      TempFirmBalanceSheet[[i]] = BalanceSheetFirms[[j]]; Break[]]
+     ]
+    ];
+   BalanceSheetFirms = TempFirmBalanceSheet;
+   
+   (*BalanceSheetFirms = BalanceSheetFirms[[ Ordering @ 
+   FirmOrdering]];*)
+   
+   (* Hire Labor *)
+   i = 1;
+   j = 1;
+   While[i <= EmploymentLevel,
+    
+    If[(BalanceSheetHouseholds[[i]][[6]] <= 
+        ProductionMatrix[[j]][[12]]) && (ProductionMatrix[[j]][[
+         2]] >= ProductionMatrix[[j]][[
+         12]]) && (ProductionMatrix[[j]][[4]] < 
+        ProductionMatrix[[j]][[6]]), (* If Salary Offer > 
+     Reservation Wage & Firm has cash on hand to pay the wage, & the \
+firm hasn't met it's labor target *)
+     
+     BalanceSheetHouseholds[[i]][[2]] += 
+      ProductionMatrix[[j]][[12]]; (* 
+     Add cash to household based off cost of labor *)
+     
+     BalanceSheetFirms[[j]][[2]] -= ProductionMatrix[[j]][[12]];(* 
+     Subtract cash from firm *)
+     ProductionMatrix[[j]][[4]] += 1;(* 
+     Add unit of labor to firm *)
+     
+     BalanceSheetHouseholds[[i]][[7]] = 1;(* 
+     Update employment status *)
+     
+     If[BalanceSheetHouseholds[[i]][[8]] < 0, 
+      BalanceSheetHouseholds[[i]][[8]] = 1, 
+      BalanceSheetHouseholds[[i]][[8]] += 1]; (* Update cumulative *)
 
-Cell[BoxData["PrintModelOutput"], "Input",
- CellChangeTimes->{{3.719838789555848*^9, 3.71983879495821*^9}, 
-   3.721669164833929*^9, 3.721671141813307*^9}]
-},
-WindowSize->{1279, 752},
-WindowMargins->{{0, Automatic}, {Automatic, 0}},
-FrontEndVersion->"10.2 for Mac OS X x86 (32-bit, 64-bit Kernel) (July 6, \
-2015)",
-StyleDefinitions->"Default.nb"
-]
-(* End of Notebook Content *)
+          j = 1;
+     i += 1; (* Go to next house *)
+     ,
+     j += 1; (* If not, 
+     households search for the next highest salary offer *)
+     
+     If[j > NumFirms, j = 1; i += 1]  (* 
+     If checked all firms then go to next house *)
+     ] 
+    ];
+   
+   (* If not employed set the cumulative employment to -1 *)
+   Do[
+    If[BalanceSheetHouseholds[[i]][[7]] == 0,
+     
+     If[BalanceSheetHouseholds[[i]][[8]] > 0,
+      BalanceSheetHouseholds[[i]][[8]] = -1,
+      BalanceSheetHouseholds[[i]][[8]] -= 1]],
+    
+    {i, 1, NumHouseholds}];
+   
+   (* Resort by label *)
+   
+   ProductionMatrix = SortBy[ProductionMatrix, #1[[1]] &];
+   BalanceSheetHouseholds = 
+    SortBy[BalanceSheetHouseholds, #1[[1]] &];
+   BalanceSheetFirms = SortBy[BalanceSheetFirms, #[[1]] &];
+   
+   {BalanceSheetHouseholds, ProductionMatrix}];
 
-(* Internal cache information *)
-(*CellTagsOutline
-CellTagsIndex->{}
-*)
-(*CellTagsIndex
-CellTagsIndex->{}
-*)
-(*NotebookFileOutline
-Notebook[{
-Cell[558, 20, 5778, 131, 553, "Input"],
-Cell[6339, 153, 201, 5, 33, "Input"],
-Cell[6543, 160, 2718, 65, 199, "Input"],
-Cell[9264, 227, 1310, 38, 80, "Input"],
-Cell[10577, 267, 2327, 52, 148, "Input"],
-Cell[12907, 321, 1653, 39, 114, "Input"],
-Cell[14563, 362, 1034, 27, 63, "Input"],
-Cell[15600, 391, 1255, 29, 80, "Input"],
-Cell[16858, 422, 197, 5, 33, "Input"],
-Cell[17058, 429, 12362, 278, 624, "Input"],
-Cell[29423, 709, 1601, 40, 80, "Input"],
-Cell[31027, 751, 22612, 469, 1270, "Input"],
-Cell[53642, 1222, 2941, 65, 114, "Input"],
-Cell[56586, 1289, 12798, 265, 743, "Input"],
-Cell[69387, 1556, 6469, 158, 488, "Input"],
-Cell[75859, 1716, 3378, 50, 131, "Input"],
-Cell[79240, 1768, 291, 5, 28, "Input"],
-Cell[79534, 1775, 522, 10, 114, "Input"],
-Cell[80059, 1787, 1019, 19, 165, "Input"],
-Cell[81081, 1808, 155, 2, 28, "Input"]
-}
-]
-*)
+(* Carry out Production *)
+FirmsProduce := Do[
+  RevenueMatrix[[i]][[1]] = i; (* Create Labels *)
+  
+  RevenueMatrix[[i]][[
+    3]] = (Floor[
+     TechLevel*(ProductionMatrix[[i]][[3]]^
+        ReturnsCapital)*(ProductionMatrix[[i]][[4]]^ReturnsLabor)]);
+  RevenueMatrix[[i]][[4]] += RevenueMatrix[[i]][[3]];
+  , {i, 1, NumFirms}]
 
-(* End of internal cache information *)
+ConsumptionMarket := Module[{CashDeposits, i, j},
+   
+   (* Calculate the Consumer's Budgets - Households deposit (1-
+   MPC) in the Bank *)
+   Do[
+    BalanceSheetHouseholds[[i]][[3]] += (1 - MPC)*
+      BalanceSheetHouseholds[[i]][[2]];
+    BalanceSheetHouseholds[[i]][[2]] -= 
+     BalanceSheetHouseholds[[i]][[3]], {i, 1, NumHouseholds}];
+   
+   CashDeposits = Total[BalanceSheetHouseholds][[3]];
+   BalanceSheetBanks[[1]][[2]] += CashDeposits;(* 
+   Increase bank's cash *)
+   
+   BalanceSheetBanks[[1]][[3]] += CashDeposits; (* 
+   And bank's liabilities *)
+   
+   (* Compute the Price that a Firm charges *)
+   
+   Do[RevenueMatrix[[i]][[5]] = PriceGood, {i, 1, NumFirms}];
+   
+   (* Rank firms by cheapest to most expensive *)
+   
+   RevenueMatrix = SortBy[RevenueMatrix, #1[[5]] &];
+   
+   i = 1;
+   j = 1;
+   While[i < NumHouseholds,
+    
+    If[(BalanceSheetHouseholds[[i]][[2]] >= 
+        RevenueMatrix[[j]][[5]]) && (RevenueMatrix[[j]][[4]] > 0), (* 
+     If Cash on Hand > 
+     Price of the Good & Inventories are greater than zero *)
+     
+     {BalanceSheetHouseholds[[i]][[2]] -= RevenueMatrix[[j]][[5]], (* 
+      Subtract cash to household *)
+      
+      RevenueMatrix[[j]][[2]] += RevenueMatrix[[j]][[5]] ,(* 
+      Add cash to firm *)
+      RevenueMatrix[[j]][[4]] -= 1}];
+    
+    (* If firm's inventory equals zero, go to next firm *)
+    
+    If[RevenueMatrix[[j]][[4]] == 0,
+     j += 1];
+    
+    (* If house can't afford to buy more, go to next house *)
+    
+    If[BalanceSheetHouseholds[[i]][[2]] < RevenueMatrix[[j]][[5]],
+     j = 1;
+     i += 1;];
+    
+    ];
+   
+   (* Resort Firms by Label *)
+   
+   RevenueMatrix = SortBy[RevenueMatrix, #1[[1]] &];
+   
+   {BalanceSheetHouseholds, RevenueMatrix}];
+
+Bookkeeping := Module[{RevenueSummary, Employment},
+   
+   (* Push Firm's Cash and Inventory to their Balance Sheet for the \
+next period *)
+   Do[
+    BalanceSheetFirms[[i]][[2]] += RevenueMatrix[[i]][[2]];
+    BalanceSheetFirms[[i]][[5]] += RevenueMatrix[[i]][[4]];,
+    {i, 1, NumFirms}];
+   
+   RevenueSummary = Total[RevenueMatrix];
+   Employment = Total[ProductionMatrix][[4]];
+   
+   (* Calculate output, nominal gdp, inventories, 
+   and consumption summed across all firms *)
+   
+   ModelOutputMatrix[[CurrentPeriod]][[1]] = CurrentPeriod;
+   ModelOutputMatrix[[CurrentPeriod]][[2]]  = RevenueSummary[[3]];
+   ModelOutputMatrix[[CurrentPeriod]][[3]]  = 
+    RevenueSummary[[3]]*PriceGood;
+   ModelOutputMatrix[[CurrentPeriod]][[4]]  = RevenueSummary[[4]];
+   ModelOutputMatrix[[CurrentPeriod]][[5]]  = 
+    ModelOutputMatrix[[CurrentPeriod]][[2]] - 
+     ModelOutputMatrix[[CurrentPeriod]][[4]];
+   ModelOutputMatrix[[CurrentPeriod]][[6]] = Employment;
+   ModelOutputMatrix[[CurrentPeriod]][[7]] = 
+    N[(NumHouseholds - Employment)/NumHouseholds];
+   
+   (* Reset per-period matrices *)
+   
+   ProductionMatrix = ConstantArray[0, {NumFirms, 12}];
+   RevenueMatrix = ConstantArray[0, {NumFirms, 5}];
+   
+   (* Reset employment status *)
+   
+   Do[BalanceSheetHouseholds[[i]][[7]] = 0, {i, 1, NumHouseholds}]
+    
+    {BalanceSheetFirms, ModelOutputMatrix}];
+
+(* Run the Economy *)
+(*CurrentPeriod = 1;
+ProductionAllocation;
+PurchaseCapital;
+LaborSearch;
+FirmsProduce;
+ConsumptionMarket;*)
+
+(*Bookkeeping;*)
+
+(*PrintBanks
+PrintFirms
+PrintRevenue
+PrintProduction
+PrintModelOutput
+PrintHouseholds*)
+
+Do[
+  CurrentPeriod = k;
+  ProductionAllocation;
+  PurchaseCapital;
+  LaborSearch;
+  FirmsProduce;
+  ConsumptionMarket;
+  Bookkeeping;,
+  {k, 1, NumPeriods}];
+
+PrintModelOutput
