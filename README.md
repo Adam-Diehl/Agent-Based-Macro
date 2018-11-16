@@ -2,5 +2,16 @@
 Agent Based Macroeconomic model development. Programmed in Mathematica. 
 
 ## Version History
+### Version 1.1.2
+- Firms update prices of goods based on inventory levels
+- Firms update their expectations of labor prices based on a moving average of previous wages
+- Added more tracked metrics about the economy
+- Fixed issue where bank balance sheets weren' t updating properly
+- Fixed issue where reservation wages weren' t updating properly
+- Fixed issue where cash holdings are going negative for households (due to improper MPC calculations)
+- Allowed inventory to persist through time (ref : InventorySpoilage)
+- Fixed issue where consumption loop wouldn' t work when firm inventory equals zero
+
 ### Version 1.0
 Simple deterministic model with limited adjustment capability (reservation wage preference adjustment) and forced savings. Banking sector collects deposits but does not make loans. Consumers purchase to their fullest within the constraints set by their MPC. Model is globally unstable. 
+
