@@ -3,6 +3,9 @@ Agent Based Macroeconomic model development. Programmed in Mathematica.
 
 ## Version History
 ### Version 1.1.2
+- The price of capital responds to demand (captured as the ratio of capital to labor - i.e. if labor subsitutes for capital than demand has fallen).
+
+### Version 1.1.2
 - Firms update prices of goods based on inventory levels
 - Firms update their expectations of labor prices based on a moving average of previous wages
 - Added more tracked metrics about the economy
