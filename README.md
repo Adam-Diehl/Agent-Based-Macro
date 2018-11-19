@@ -6,6 +6,11 @@ Heterogeneous agent based models (ABMs) afford the development of robust microfo
 <img src="Screen%20Shot%202018-11-19%20at%2017.48.16.png" alt = "ABM model graphical output demo">
 
 ## Version History
+### Version 1.1.3.2
+- Fixed nGDP calculation
+- Refactored code to handle model output
+- Added option to observe exogenous tech changes through time 
+
 ### Version 1.1.2.1
 - The price of capital responds to demand (captured as the ratio of capital to labor - i.e. if labor subsitutes for capital than demand has fallen).
 
