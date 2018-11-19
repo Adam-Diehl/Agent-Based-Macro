@@ -1,0 +1,694 @@
+(* Agent Based Macroeconomic Model Simulation Version 1.1.3.2 *)
+
+(* Model output prints at bottom. To run a simulation press Cmd-A (or \
+Ctrl-A on Windows) and hit Shift-Enter. Clear the kernel between runs \
+of the simulation. *)
+
+(* Update Log:
+- November 19, 2018: v1.1.3.2: Fixed nGDP calculation 
+- November 19, 2018: v1.1.3.1: refactored code to handle model output
+- November 19, 2018: v1.1.3: Feature(s) added - option to observe \
+exogenous tech changes through time 
+- November 15, 2018: v1.1.2.1: Feature(s) added - price of capital \
+responds to demand
+- November 15, 2018: v1.1.2: Feature(s) added - 1: Firms update \
+prices of goods based on inventory levels, 2: Firms update their \
+expectations of labor prices based on a moving average of previous \
+wages, 3: Added more tracked metrics about the economy
+- November 15, 2018: v1.1.1.3: Fixed issue where bank balance sheets \
+weren't updating properly
+- November 14, 2018: v1.1.1.2: Fixed issue where reservation wages \
+weren't updating properly
+- November 14, 2018: v1.1.1.1: Fixed issue where cash holdings are \
+going negative for households, (due to improper MPC calculations)
+ - November 14, 2018: v1.1.1: Feature(s) added - Allowed inventory to \
+persist through time (ref: InventorySpoilage)
+- November 13, 2018: v1.1.0.1: Fixed issue where consumption loop \
+wouldn't work when firm inventory equals zero
+- December 01, 2017: v1.1.0: Feature(s) added - A risk-free rate on \
+deposits (Note: NOT SF consistent ATM)
+*)
+
+(* Open Issues
+- Performance issues with inventory spoilage values less than 1
+- Convergence issues
+	- Economy just generally nosedives 
+- {Set of unknown issues}
+ *)
+
+(* SET CONSTANTS *)
+
+(* Exogeneous parameters *)
+NumPeriods = 30;
+NumFirms = 20;
+NumHouseholds = 1000;
+NumBanks = 1;
+
+(* Production parameters *)
+Cash = 500; (* Initial cash to single \
+firm *)
+InitialCapital = 0;
+InitialLabor = 0;
+
+PriceCapital = 25; (* Initial rental rate *)
+PriceLabor = 10; (* \
+Initial wage *)
+PriceGood = 5; (* Initial price *)
+
+ReturnsCapital = 0.3; (* Returns to capital (Cobb-Douglass) *)
+\
+ReturnsLabor = 0.85; (* Returns to labor (Cobb-Douglass) *)
+
+TechLevel = 5; (* Tech adjustment factor (Cobb-Douglass) *)
+\
+TechProgression = 
+ NormalDistribution[0.02, 
+  0.01]; (* Exogenous growth in technology *)
+
+InventorySpoilage = 1; (* What percentage of the inventory survives \
+between periods *)
+InventoryLevelTarget = 100;(* Inventory levels the \
+firm are targeting by changing prices *)
+
+PriceUpAdjustment = 1.5; (* How much firms increase the price up by \
+(percentage) *)
+PriceDownAdjustment = 0.75; (* How much firms \
+increase the price down by (percentage) *)
+PriceMinimum = 0.05; (* \
+The minimum price a firm will charge for a good *)
+PriceMaximum = 50; \
+(* The maximum price a firm will charge for a good *)
+\
+PriceRandomVariation = 
+ NormalDistribution[0, 
+  0.1]; (* A small random adjustment factor to the price *)
+
+CapitalDecayRatio = 0.5; (* What amount of capital persists between \
+periods *)
+CapitalRateTriggerDown = 
+ 0.5*ReturnsCapital; (* Based off of capital/labor ratio: if C/L \
+ratio falls below Trigger, change price *)
+CapitalRateTriggerUp = 
+ 1.5*ReturnsCapital; (* Based off of capital/labor ratio: if C/L \
+ratio rises above Trigger, change price *)
+CapitalRateChangeDown = \
+0.85; (* How much price declines for capital (multiplier) *)
+\
+CapitalRateChangeUp = 1.5; (* How much price increases for capital \
+(multiplier) *)
+CapitalRateMinimum = 0.5; (* Lowest price allowable \
+for the rental rate of capital *)
+
+(* Household parameters *)
+
+MPC = 1;(* Marginal Propensity to Consume *)
+
+WageAdjustUpWait = 3; (* If employed for more than n periods, \
+increase reservation wage *)
+WageAdjustDownWait = -1; (* If \
+unemployed for more than n periods, decrease reservation wage -- note \
+unemployment is "negative" employment *)
+WageAdjustUpAmount = 1; (* \
+How many dollars to increase wage demands *)
+WageAdjustDownAmount = \
+-2; (* How many dollars to decrease wage demands *)
+WageMinimum = 0;
+
+(* Banking parameters *)
+RiskFreeRate = 1; (* Rate paid on deposits -- \
+rates other than 1 break breaks SF consistency (in current version) *)
+
+(* PROGRAM INITIALIZATION *)
+
+(* Create Balance Sheets and funtions to print them *)
+
+BalanceSheetBanks = ConstantArray[0, {NumBanks, 6}];
+PrintBanks := 
+  Grid[Prepend[
+    BalanceSheetBanks, {"Label", "Cash", "Liabilities", "Equity", 
+     "Expected Capital Inflow", "Capital Ratio"}]];
+
+BalanceSheetFirms = ConstantArray[0, {NumFirms, 5}];
+PrintFirms := 
+  Grid[Prepend[
+    BalanceSheetFirms, {"Label", "Cash", "Liabilities", "Equity", 
+     "Inventory"}]];
+
+BalanceSheetHouseholds = ConstantArray[0, {NumHouseholds, 8}];
+PrintHouseholds := 
+  Grid[Prepend[
+    BalanceSheetHouseholds, {"Label", "Cash (Liquid)", 
+     "Cash (Deposits)", "Equity", "Net Wealth", "Reservation Wage", 
+     "Employed", "Cumulative Employment"}]];
+
+(* Create Labels for the Balance Sheets *)
+Do[
+ BalanceSheetBanks[[i]][[1]] = i, {i, 1, NumBanks}]
+Do[BalanceSheetFirms[[i]][[1]] = i, {i, 1, NumFirms}]
+Do[BalanceSheetHouseholds[[i]][[1]] = i, {i, 1, NumHouseholds}]
+
+(* Create array for production *)
+
+ProductionMatrix = ConstantArray[0, {NumFirms, 12}];
+PrintProduction := 
+  Grid[Prepend[
+    ProductionMatrix, {"Label", "Cash", "Current Capital", 
+     "Current Labor", "Capital Target", "Labor Target", 
+     "Revenue Target", "Cost Capital", "Cost Labor", "Profit", 
+     "Rental Rate", "Salary"}]];
+
+(* Set firm's initial cash in the Production Matrix *)
+
+Do[BalanceSheetFirms[[i]][[2]] = Cash, {i, 1, NumFirms}];
+
+(* Define functions for Cobb-Douglas production function *)
+
+CostLabor[Labor_] := PriceLabor*Labor;
+CostCapital[Capital_] := PriceCapital*Capital;
+Revenue[Capital_, Labor_] := 
+  TechLevel*PriceGood*(Capital^ReturnsCapital)*(Labor^ReturnsLabor);
+Profits[Capital_, Labor_] := 
+  Revenue[Capital, Labor] - CostCapital[Capital] - CostLabor[Labor];
+
+(* Create an array to hold the Revenue from the Firm's sale of goods *)
+
+RevenueMatrix = ConstantArray[0, {NumFirms, 5}];
+PrintRevenue := 
+  Grid[Prepend[
+    RevenueMatrix, {"Label", "Cash", "Output", "Inventory", "Price"}]];
+PriceHistory = ConstantArray[PriceGood, {NumPeriods, NumFirms}];
+
+(* Create an array to hold the macroeconomic statistics *)
+
+MacroeconomicOutput = ConstantArray[0, {NumPeriods, 7}];
+PrintMacroeconomicOutput := 
+  Grid[Prepend[
+    MacroeconomicOutput, {"Period", "Output", "Nominal GDP", 
+     "Global Inventory", "Consumption", "Unemployment Rate", 
+     "Tech Level"}]];
+
+LaborOutput = ConstantArray[0, {NumPeriods, 5}];
+PrintLaborOutput := 
+  Grid[Prepend[
+    LaborOutput, {"Period", "Employment", "Unemployment Rate", 
+     "Avg. Reservation Wage", "Avg. Paid Wage"}]];
+
+BusinessOutput = ConstantArray[0, {NumPeriods, 5}];
+PrintBusinessOutput := 
+  Grid[Prepend[
+    BusinessOutput, {"Period", "Price", "Expected Average Profit", 
+     "Average Capital/Labor Ratio", "Capital Price"}]];
+
+FirmDistribution = ConstantArray[0, {NumPeriods, NumFirms}];
+
+(* ECONOMIC PROCESSES *)
+
+ProductionAllocation := Module[{OptimizationMatrix},
+   
+   (* Create labels *)
+   
+   Do[ProductionMatrix[[i]][[1]] = i, {i, 1, NumFirms}];
+   
+   (* Add the firm's cash to the production matrix *)
+   
+   Do[ProductionMatrix[[i]][[2]] = BalanceSheetFirms[[i]][[2]], {i, 1,
+      NumFirms}];
+   
+   (* Solve CB optimization *)
+   
+   OptimizationMatrix = ConstantArray[0, NumFirms];
+   Do[OptimizationMatrix[[i]] = 
+     Maximize[{Profits[K, L], K >= 0, L >= 0, 
+       CostCapital[K] + CostLabor[L] <= 
+        ProductionMatrix[[i]][[2]]}, {K, L}], {i, 1, NumFirms}];
+   
+   (* Set initial capital, initial labor, capital target, 
+   labor target *)
+   Do[{
+     If[CurrentPeriod == 1, {
+       ProductionMatrix[[i]][[3]] = InitialCapital,
+       ProductionMatrix[[i]][[4]] = InitialLabor;}];
+     ProductionMatrix[[i]][[5]] = 
+      Floor[Last[Flatten[OptimizationMatrix[[i]]][[2]]]];
+     ProductionMatrix[[i]][[6]] = 
+      Floor[Last[Flatten[OptimizationMatrix[[i]]][[3]]]]; 
+     }, {i, 1, NumFirms}];
+   
+   (* Calculate revenue, costs, profits*)
+   Do[{
+     ProductionMatrix[[i]][[7]] = 
+      Revenue[ProductionMatrix[[i]][[5]], 
+       ProductionMatrix[[i]][[6]]];
+     ProductionMatrix[[i]][[8]] = 
+      CostCapital[ProductionMatrix[[i]][[5]]];
+     ProductionMatrix[[i]][[9]] = 
+      CostLabor[ProductionMatrix[[i]][[6]]];
+     ProductionMatrix[[i]][[10]] = 
+      ProductionMatrix[[i]][[7]] - ProductionMatrix[[i]][[8]] - 
+       ProductionMatrix[[i]][[9]];
+     }, {i, 1, NumFirms}];
+   
+   (* Calculate rental rate of capital and salary offers *)
+   Do[{
+     ProductionMatrix[[i]][[11]] = 
+      If[ ProductionMatrix[[i]][[5]] == 0, 0, 
+       ProductionMatrix[[i]][[8]]/ProductionMatrix[[i]][[5]]];
+     ProductionMatrix[[i]][[12]] = 
+      If[ProductionMatrix[[i]][[6]] == 0, 0, 
+       ProductionMatrix[[i]][[9]]/ProductionMatrix[[i]][[6]]];
+     }, {i, 1, NumFirms}];
+   
+   {ProductionMatrix}];
+
+PurchaseCapital := Do[
+   {ProductionMatrix[[i]][[3]] = ProductionMatrix[[i]][[5]],
+    BalanceSheetFirms[[i]][[2]] -= ProductionMatrix[[i]][[8]]}
+   , {i, 1, NumFirms}];
+
+(* Firms go into the labor market to hire workers *)
+
+LaborSearch := 
+  Module[{EmploymentLevel, FirmOrdering, TempFirmBalanceSheet, 
+    FirmLookup, i, j},
+   
+   (* Calculate reservation wages *)
+   Do[
+    
+    (* Set initial reservation wages *)
+    
+    If[CurrentPeriod == 1, 
+     BalanceSheetHouseholds[[i]][[6]] = PriceLabor];
+    
+    (* Workers adjust their reservation wages *)
+    
+    If[BalanceSheetHouseholds[[i]][[8]] >= WageAdjustUpWait, 
+     BalanceSheetHouseholds[[i]][[6]] += WageAdjustUpAmount];
+    If[BalanceSheetHouseholds[[i]][[8]] <= 
+       WageAdjustDownWait && (BalanceSheetHouseholds[[i]][[6]] + 
+         WageAdjustDownAmount) >= WageMinimum, 
+     BalanceSheetHouseholds[[i]][[6]] += WageAdjustDownAmount];
+    
+    , {i, 1, NumHouseholds}];
+   
+   (* Calculate the number of open positions and instantiate a matrix \
+to represent those jobs *)
+   
+   EmploymentLevel = 
+    Min[Sum[ProductionMatrix[[i]][[6]], {i, 1, NumFirms}], 
+     NumHouseholds];
+   
+   (* Sort firm's salary offers and household reservation wages: 
+   low to high *)
+   
+   ProductionMatrix = SortBy[ProductionMatrix, #[[12]] &];
+   BalanceSheetHouseholds = SortBy[BalanceSheetHouseholds, #[[6]] &];
+   
+   (* Ordering the firms is a little more tricky *)
+   
+   FirmOrdering = ConstantArray[0, NumFirms]; (* Create array *)
+   
+   Do[FirmOrdering[[i]] = ProductionMatrix[[i]][[1]], {i, 1, 
+     NumFirms}]; (* Populate array *)
+   
+   TempFirmBalanceSheet = ConstantArray[0, NumFirms];
+   (* Match the ordering of the firms in the balance sheet with the \
+ordering of the firms in the production matrix *)
+   
+   For[i = 1, i <= NumFirms, i++,
+    FirmLookup = FirmOrdering[[i]];
+    For[j = 1, j <= NumFirms, j++,
+     If[BalanceSheetFirms[[j]][[1]] == FirmLookup,
+      TempFirmBalanceSheet[[i]] = BalanceSheetFirms[[j]]; Break[]]
+     ]
+    ];
+   BalanceSheetFirms = TempFirmBalanceSheet;
+   
+   (* Hire Labor *)
+   i = 1;
+   j = 1;
+   While[i <= EmploymentLevel,
+    
+    (* If Salary Offer > 
+    Reservation Wage & Firm has cash on hand to pay the wage, & the \
+firm hasn't met it's labor target *)
+    
+    If[(BalanceSheetHouseholds[[i]][[6]] <= 
+        ProductionMatrix[[j]][[12]]) && (ProductionMatrix[[j]][[
+         2]] >= ProductionMatrix[[j]][[
+         12]]) && (ProductionMatrix[[j]][[4]] < 
+        ProductionMatrix[[j]][[6]]), 
+     BalanceSheetHouseholds[[i]][[2]] += 
+      ProductionMatrix[[j]][[12]]; (* 
+     Add cash to household based off cost of labor *)
+     
+     BalanceSheetFirms[[j]][[2]] -= ProductionMatrix[[j]][[12]];(* 
+     Subtract cash from firm *)
+     ProductionMatrix[[j]][[4]] += 1;(* 
+     Add unit of labor to firm *)
+     
+     BalanceSheetHouseholds[[i]][[7]] = 1;(* 
+     Update employment status *)
+     
+     If[BalanceSheetHouseholds[[i]][[8]] < 0, 
+      BalanceSheetHouseholds[[i]][[8]] = 1, 
+      BalanceSheetHouseholds[[i]][[8]] += 1]; (* Update cumulative *)
+
+          j = 1;
+     i += 1; (* Go to next house *)
+     ,
+     j += 1; (* If not, 
+     households search for the next highest salary offer *)
+     
+     If[j > NumFirms, j = 1; i += 1]  (* 
+     If checked all firms then go to next house *)
+     ] 
+    ];
+   
+   (* If not employed set the cumulative employment to -1 *)
+   Do[
+    If[BalanceSheetHouseholds[[i]][[7]] == 0,
+     
+     If[BalanceSheetHouseholds[[i]][[8]] > 0,
+      BalanceSheetHouseholds[[i]][[8]] = -1,
+      BalanceSheetHouseholds[[i]][[8]] -= 1]],
+    
+    {i, 1, NumHouseholds}];
+   
+   (* Resort by label *)
+   
+   ProductionMatrix = SortBy[ProductionMatrix, #1[[1]] &];
+   BalanceSheetHouseholds = 
+    SortBy[BalanceSheetHouseholds, #1[[1]] &];
+   BalanceSheetFirms = SortBy[BalanceSheetFirms, #[[1]] &];
+   
+   {BalanceSheetHouseholds, ProductionMatrix}];
+
+(* Carry out Production *)
+FirmsProduce := Do[
+  RevenueMatrix[[i]][[1]] = i; (* Create Labels *)
+  
+  RevenueMatrix[[i]][[
+    3]] = (Floor[
+     TechLevel*(ProductionMatrix[[i]][[3]]^
+        ReturnsCapital)*(ProductionMatrix[[i]][[4]]^ReturnsLabor)]);
+  RevenueMatrix[[i]][[4]] +=  RevenueMatrix[[i]][[3]]; 
+  (* Current inventory equals previous inventory + 
+  new output *)
+  , {i, 1, NumFirms}]
+
+(* Consumers and firms go to the market *)
+
+ConsumptionMarket := Module[{CashDeposits, i, j},
+   
+   ConsumptionTracker = 0;
+   
+   (* Calculate the Consumer's Budgets - Households deposit (1-
+   MPC) in the Bank *)
+   Do[
+    If[BalanceSheetHouseholds[[i]][[7]] == 1,
+      {
+       CashDeposits = 0;
+       CashDeposits = (1 - MPC)*BalanceSheetHouseholds[[i]][[2]];
+       BalanceSheetHouseholds[[i]][[3]] += CashDeposits;
+       BalanceSheetHouseholds[[i]][[2]] -= CashDeposits;
+       BalanceSheetBanks[[1]][[2]] += CashDeposits;(* 
+       Increase bank's cash *)
+       
+       BalanceSheetBanks[[1]][[3]] += CashDeposits;} (* 
+      And bank's liabilities *)
+      ];
+    , {i, 1, NumHouseholds}];
+   
+   (* Compute the Price that a Firm charges (in the first period) *)
+ 
+     Do[RevenueMatrix[[i]][[5]] = 
+     PriceHistory[[CurrentPeriod]][[i]], {i, 1, NumFirms}];
+   
+   (* Rank firms by cheapest to most expensive *)
+   
+   RevenueMatrix = SortBy[RevenueMatrix, #1[[5]] &];
+   
+   i = 1; (* Index tracks current household *)
+   j = 1; (* 
+   Index tracks current firm *)
+   While[i < NumHouseholds,
+    
+    (* Check if household can afford to buy at all: cash on hand < 
+    cheapest price => go to next house *)
+    
+    If[BalanceSheetHouseholds[[i]][[2]] < Min[RevenueMatrix[[All, 5]]],
+     i += 1];
+    
+    (* If Cash on Hand > 
+    Price of the Good & Inventories are greater than zero *)
+    
+    If[(BalanceSheetHouseholds[[i]][[2]] >= 
+        RevenueMatrix[[j]][[5]]) && (RevenueMatrix[[j]][[4]] > 0), 
+     
+     {BalanceSheetHouseholds[[i]][[2]] -= RevenueMatrix[[j]][[5]], (* 
+      Subtract cash to household *)
+      
+      RevenueMatrix[[j]][[2]] += RevenueMatrix[[j]][[5]] ,(* 
+      Add cash to firm *)
+      RevenueMatrix[[j]][[4]] -= 1,
+      ConsumptionTracker += 1}];
+    
+    (* If firm's inventory equals zero, go to next firm *)
+    
+    If[RevenueMatrix[[j]][[4]] == 0 && j < NumFirms ,
+     j += 1];
+    
+    (* If all firms out of inventory exit search *)
+    
+    If[Total[RevenueMatrix][[4]] == 0,
+     Break[]];
+    
+    (* If house can't afford to buy more, go to next house *)
+    
+    If[BalanceSheetHouseholds[[i]][[2]] < RevenueMatrix[[j]][[5]],
+     j = 1;
+     i += 1;];
+    ];
+   
+   (* Resort Firms by Label *)
+   
+   RevenueMatrix = SortBy[RevenueMatrix, #1[[1]] &];
+   {BalanceSheetHouseholds, RevenueMatrix, ConsumptionTracker}];
+
+EndOfPeriodAdjustments := 
+  Module[{RevenueSummary, Employment, CapitalLaborRatio, 
+    CapitalPreserved},
+   
+   
+   (* Push Firm's Cash and Inventory to their Balance Sheet for the \
+next period *)
+   Do[
+    BalanceSheetFirms[[i]][[2]] += RevenueMatrix[[i]][[2]];
+    BalanceSheetFirms[[i]][[5]] = RevenueMatrix[[i]][[4]];,
+    {i, 1, NumFirms}];
+   
+   RevenueSummary = Total[RevenueMatrix];
+   Employment = Total[ProductionMatrix][[4]];
+   
+   (* AGENTS UPDATE PARAMETERS *)
+   
+   (* Firms adjust their salary based on their expectation of the \
+price of labor *)
+   
+   PriceLabor = 
+    0.85*PriceLabor + 0.15* Mean[BalanceSheetHouseholds[[All, 6]]];
+   
+   (* Price of capital adjusts to respond to the demand for capital *)
+
+      CapitalLaborRatio = 
+    If[N[Mean[ProductionMatrix[[All, 4]]]] != 0, 
+     N[Mean[ProductionMatrix[[All, 3]]]]/
+      N[Mean[ProductionMatrix[[All, 4]]]], 0];
+   If[CapitalLaborRatio < CapitalRateTriggerDown && 
+     PriceCapital > CapitalRateMinimum, 
+    PriceCapital *= CapitalRateChangeDown];
+   If[CapitalLaborRatio > CapitalRateTriggerUp, 
+    PriceCapital *= CapitalRateChangeUp];
+   
+   (* Firms adjust the price of their goods to push/hold back unsold/
+   oversold inventory *)
+   
+   Do[ (* Set default as "Markov" *)
+    
+    If[CurrentPeriod != NumPeriods,
+     PriceHistory[[CurrentPeriod + 1]][[i]] = 
+      PriceHistory[[CurrentPeriod]][[i]]],
+    {i, 1, NumFirms}];
+   Do[ (* Increase with low inventory *)
+    
+    If[BalanceSheetFirms[[i]][[5]] < InventoryLevelTarget && 
+      CurrentPeriod != NumPeriods && BalanceSheetFirms[[i]][[5]] > 0 && 
+      PriceHistory[[CurrentPeriod]][[i]] < PriceMaximum ,
+     PriceHistory[[CurrentPeriod + 1]][[i]] = 
+      PriceHistory[[CurrentPeriod]][[i]]*
+       PriceUpAdjustment * (1 + RandomVariate[PriceRandomVariation])
+     ]; (* Decrease with high inventory *)
+    
+    If[(BalanceSheetFirms[[i]][[5]] > 
+        InventoryLevelTarget) && (PriceHistory[[CurrentPeriod]][[i]] >
+         PriceMinimum ) && CurrentPeriod != NumPeriods,
+     PriceHistory[[CurrentPeriod + 1]][[i]] = 
+      PriceHistory[[CurrentPeriod]][[i]]*
+       PriceDownAdjustment *(1 + RandomVariate[PriceRandomVariation])
+     ];,
+    {i, 1, NumFirms}];
+   
+   (* Banks pay out interest on deposits -- currently breaks SF \
+consistency (or is just a central bank) *)
+   Do[
+    BalanceSheetHouseholds[[i]][[3]] *= RiskFreeRate; (* 
+    Increase amount deposited for each household *)
+    , {i, 1, 
+     NumHouseholds}];
+   BalanceSheetBanks[[1]][[2]] *= RiskFreeRate;(* 
+   Increase bank's cash *)
+   
+   BalanceSheetBanks[[1]][[3]] *= RiskFreeRate; (* 
+   And bank's liabilities *)
+   
+   (* RECORD END OF PERIOD STATISTICS *)
+   
+   (* Record macroeconomic statistics *)
+   
+   MacroeconomicOutput[[CurrentPeriod]][[1]] = CurrentPeriod;
+   MacroeconomicOutput[[CurrentPeriod]][[2]] = RevenueSummary[[3]]; (* 
+   Output *)
+   
+   MacroeconomicOutput[[CurrentPeriod]][[3]] = 
+    RevenueMatrix[[All, 3]].PriceHistory[[CurrentPeriod, All]]; (* 
+   Nominal GDP *)
+   
+   MacroeconomicOutput[[CurrentPeriod]][[4]] = RevenueSummary[[4]]; (* 
+   Inventory *)
+   
+   MacroeconomicOutput[[CurrentPeriod]][[5]] = ConsumptionTracker; (* 
+   Consumption *)
+   
+   MacroeconomicOutput[[CurrentPeriod]][[6]] = 
+    N[(NumHouseholds - Employment)/NumHouseholds]; (* Unemployment *)
+
+      MacroeconomicOutput[[CurrentPeriod]][[7]] = TechLevel;
+   
+   (* Record labor market statistics *)
+   
+   LaborOutput[[CurrentPeriod]][[1]] = CurrentPeriod;
+   LaborOutput[[CurrentPeriod]][[2]] = Employment;
+   LaborOutput[[CurrentPeriod]][[3]] = 
+    N[(NumHouseholds - Employment)/NumHouseholds]; (* Unemployment *)
+
+      LaborOutput[[CurrentPeriod]][[4]] = 
+    N[Mean[BalanceSheetHouseholds[[All, 6]]]]; (* 
+   Average reservation wage *)
+   
+   LaborOutput[[CurrentPeriod]][[5]] = PriceLabor;
+   
+   (* Record business statistics *)
+   
+   BusinessOutput[[CurrentPeriod]][[1]] = CurrentPeriod;
+   BusinessOutput[[CurrentPeriod]][[2]] = 
+    N[Mean[PriceHistory[[CurrentPeriod]]]]; (* 
+   Average price of goods in economy *)
+   
+   BusinessOutput[[CurrentPeriod]][[3]] = 
+    N[Mean[ProductionMatrix[[All, 10]]]]; (* Average Expected Profit *)
+
+      BusinessOutput[[CurrentPeriod]][[4]] = CapitalLaborRatio;
+   BusinessOutput[[CurrentPeriod]][[5]] = PriceCapital;
+   
+   (* Record distribution of firms *)
+   
+   Do[FirmDistribution[[CurrentPeriod]][[i]] = 
+     If[RevenueMatrix[[i]][[3]] != 0 && RevenueSummary[[3]] != 0, 
+      RevenueMatrix[[i]][[3]]/RevenueSummary[[3]], 0],
+    {i, 1, NumFirms}];
+   
+   (* Tech evolves *)
+   
+   TechLevel *= (1 + RandomVariate[TechProgression]);
+   
+   (* PREPARE MATRICES FOR NEXT PERIOD *)
+   
+   (* Prepare Production Matrix for next period *)
+   
+   CapitalPreserved = ProductionMatrix[[All, 3]]; (* 
+   Record current capital levels *)
+   
+   ProductionMatrix = ConstantArray[0, {NumFirms, 12}]; (* 
+   Reset matrix *)
+   
+   Do[ProductionMatrix[[i]][[3]] = CapitalPreserved[[i]], {i, 1, 
+     NumFirms}]; (* Bring across capital that hasn't degraded *)
+   (* 
+   Prepare Revenue Matrix for next period *)
+   
+   RevenueMatrix = ConstantArray[0, {NumFirms, 5}];
+   (* Set inventory in the revenue matrix to be peristent across \
+periods *)
+   
+   Do[RevenueMatrix[[i]][[4]] = 
+     BalanceSheetFirms[[i]][[5]]*InventorySpoilage, {i, 1, NumFirms}]; 
+   
+   (* Reset employment status *)
+   
+   Do[BalanceSheetHouseholds[[i]][[7]] = 0, {i, 1, NumHouseholds}];
+   
+   {BalanceSheetFirms, MacroeconomicOutput, LaborOutput, 
+    BusinessOutput}];
+
+PlotModelOutput := {
+  PlotOutput = 
+   ListLinePlot[MacroeconomicOutput[[All, 2]], 
+    PlotTheme -> "Detailed", PlotLabel -> "Output"];
+  PlotnGDP = 
+   ListLinePlot[MacroeconomicOutput[[All, 3]], PlotRange -> Full, 
+    PlotTheme -> "Detailed", PlotLabel -> "nGDP"];
+  PlotInventory = 
+   ListLinePlot[MacroeconomicOutput[[All, 4]], 
+    PlotTheme -> "Detailed", PlotLabel -> "Unsold Inventory"];
+  PlotConsumption = 
+   ListLinePlot[MacroeconomicOutput[[All, 5]], 
+    PlotTheme -> "Detailed", PlotLabel -> "Consumption"];
+  PlotUnemployment = 
+   ListLinePlot[MacroeconomicOutput[[All, 6]], PlotRange -> {0, 1}, 
+    PlotTheme -> "Detailed", PlotLabel -> "Unemployment"];
+  PlotWagePrice = 
+   ListLinePlot[{LaborOutput[[All, 4]], LaborOutput[[All, 5]]}, 
+    PlotTheme -> "Detailed", 
+    PlotLabel -> "Reservation vs (Expected) Paid Wage"];
+  PlotPrices = 
+   ListLinePlot[BusinessOutput[[All, 4]], PlotTheme -> "Detailed", 
+    PlotLabel -> "Capital/Labor Ratio"];
+  PlotExpProfit = 
+   ListLinePlot[BusinessOutput[[All, 3]], PlotTheme -> "Detailed", 
+    PlotLabel -> "Average Expected Profit"];
+  PlotFirmDistribution = 
+   ListLinePlot[
+    Total[Transpose[
+      N[(100*FirmDistribution)*(100*FirmDistribution)]]], 
+    PlotTheme -> "Detailed", 
+    PlotLabel -> "Herfindahl-Hirschman Index", 
+    PlotRange -> {0, 10500}];
+  GraphicsGrid[{{PlotOutput, PlotnGDP, 
+     PlotConsumption}, {PlotInventory, PlotUnemployment, 
+     PlotWagePrice}, {PlotPrices, PlotExpProfit, 
+     PlotFirmDistribution}}, ImageSize -> Full]
+  }
+
+(* Run the Economy *)
+Do[
+  CurrentPeriod = k;
+  ProductionAllocation;
+  PurchaseCapital;
+  LaborSearch;
+  FirmsProduce;
+  ConsumptionMarket;
+  EndOfPeriodAdjustments;
+  PrintTemporary["Period " <> ToString[CurrentPeriod] <> " complete."],
+  {k, 1, NumPeriods}];
+
+PlotModelOutput
