@@ -3,7 +3,7 @@ Agent Based Macroeconomic model development. Programmed in Mathematica.
 
 Heterogeneous agent based models (ABMs) afford the development of robust microfoundations through the direct simulation of interactions between economic actors. The aim of this agent based model is to describe non-friction based shocks (i.e. shocks arising from changes in demand or changes in actor psychology) in the macrodynamics of an otherwise healthy economy.
 
-<img src="ABM%20Sample%20Output%20-%20v1.1.2.1.png" alt = "ABM model graphical output demo">
+<img src="Screen%Shot%2018-11-19%at%17.48.16.png" alt = "ABM model graphical output demo">
 
 ## Version History
 ### Version 1.1.2.1
